@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>서비스 제목 - 성분 중심의 건강한 식품 마켓</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    /* ================= Base & Layout ================= */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: #ffffff;
+      color: #191919;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+    button { font-family: inherit; border: none; background: none; cursor: pointer; }
+    input, select { font-family: inherit; }
+    .hidden { display: none !important; }
+
+    :root {
+      --primary: #009245;
+      --primary-hover: #007a3a;
+      --text-main: #191919;
+      --text-sub: #6b7280;
+      --text-muted: #9ca3af;
+      --border-color: #e5e7eb;
+      --bg-gray: #f9fafb;
+    }
+    .text-primary { color: var(--primary); }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      background-color: rgba(25, 25, 25, 0.95);
+      color: #fff;
+      padding: 0.65rem 1.5rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    /* Top Banner */
+    .top-banner {
+      background: linear-gradient(90deg, #005f2c, #009245, #16a34a);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 0.4rem 1rem;
+    }
+    .top-banner-inner {
+      max-width: 1680px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .top-banner-text { display: flex; align-items: center; gap: 0.5rem; }
+    .badge-welcome {
+      background: rgba(255,255,255,0.2);
+      color: #fde047;
+      font-size: 0.65rem;
+      font-weight: 900;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+    }
+    .text-btn { background: none; border: none; color: #fde047; font-weight: 700; cursor: pointer; }
+    .text-btn:hover { color: #fff; }
+    .icon-btn-text { color: rgba(255,255,255,0.7); }
+
+    /* Header */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: #fff;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .header-inner {
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.25rem;
+    }
+    .brand-group { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+    .brand-logo-btn { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-symbol {
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 1.15rem;
+    }
+    .logo-symbol.small { width: 1.75rem; height: 1.75rem; font-size: 0.9rem; }
+    .logo-title { font-size: 1.35rem; font-weight: 900; color: var(--text-main); letter-spacing: -0.5px; }
+    .badge-subtitle {
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+    }
+    .badge-ai-btn {
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: transform 0.15s;
+    }
+    .badge-ai-btn:hover { background: var(--primary-hover); transform: scale(1.04); }
+
+    /* Search Box */
+    .search-container { flex: 1; max-width: 580px; }
+    .search-box {
+      display: flex;
+      align-items: center;
+      border: 2px solid var(--primary);
+      border-radius: 9999px;
+      padding: 0.25rem 0.5rem 0.25rem 1rem;
+      background: #fff;
+    }
+    .search-box input { width: 100%; border: none; outline: none; font-size: 0.85rem; color: var(--text-main); }
+    .search-submit-btn {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .search-hints {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.35rem;
+      padding-left: 0.5rem;
+      font-size: 0.7rem;
+      color: var(--text-sub);
+    }
+    .hint-label { font-weight: 700; color: var(--primary); }
+    .hint-tag { color: var(--text-sub); }
+    .hint-tag:hover { color: var(--primary); text-decoration: underline; }
+
+    /* Header Actions */
+    .header-actions { display: flex; align-items: center; gap: 0.65rem; flex-shrink: 0; }
+    .view-switch-pill {
+      display: flex;
+      background: #f3f4f6;
+      padding: 0.15rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      border: 1px solid var(--border-color);
+    }
+    .switch-btn {
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-weight: 600;
+      color: var(--text-sub);
+    }
+    .switch-btn.active {
+      background: #fff;
+      color: var(--primary);
+      font-weight: 800;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .auth-group { display: flex; align-items: center; gap: 0.4rem; }
+    .btn-pill-line {
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 0.35rem 0.9rem;
+      border-radius: 9999px;
+    }
+    .btn-pill-line:hover { background: rgba(0, 146, 69, 0.08); }
+    .btn-pill-gray {
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      font-size: 0.75rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+    }
+    .badge-user {
+      background: #ecfdf5;
+      color: var(--primary);
+      border: 1px solid #a7f3d0;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+    }
+    .btn-cart {
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.4rem 0.9rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .counter-badge {
+      background: #00b050;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 900;
+      width: 1.15rem;
+      height: 1.15rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .counter-badge.red {
+      background: #ef4444;
+      position: absolute;
+      top: -2px;
+      right: -2px;
+    }
+    .btn-wishlist { position: relative; padding: 0.4rem; border-radius: 50%; }
+
+    /* Main Content */
+    .main-container { max-width: 1680px; margin: 0 auto; min-height: calc(100vh - 200px); }
+    .view-section { padding-bottom: 4rem; }
+
+    /* Hero Banner */
+    .hero-section { padding: 1.25rem 1.5rem 0; }
+    .hero-banner {
+      position: relative;
+      min-height: 400px;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      background: url("https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=1600&auto=format&fit=crop") center/cover no-repeat;
+      display: flex;
+      align-items: center;
+    }
+    .hero-banner::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.2) 100%);
+    }
+    .hero-content { position: relative; z-index: 10; padding: 3rem; color: #fff; max-width: 750px; }
+    .hero-tag { background: var(--primary); font-size: 0.75rem; font-weight: 900; padding: 0.25rem 0.75rem; border-radius: 9999px; }
+    .hero-title { font-size: 3.25rem; font-weight: 900; margin: 1rem 0 0.5rem; letter-spacing: -1px; }
+    .hero-highlight { font-size: 1.15rem; font-weight: 700; color: #fde047; margin-bottom: 0.5rem; line-height: 1.4; }
+    .hero-sub { font-size: 0.85rem; color: #e5e7eb; margin-bottom: 1.75rem; }
+    .hero-buttons { display: flex; gap: 0.75rem; }
+    .btn-primary-hero {
+      background: var(--primary);
+      color: #fff;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 800;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-primary-hero:hover { background: var(--primary-hover); }
+    .btn-secondary-hero {
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 9999px;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    /* 10 Category Blocks */
+    .categories-section { padding: 2rem 1.5rem 0; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+    .section-title { font-size: 1.25rem; font-weight: 900; }
+    .text-link { color: var(--primary); font-size: 0.8rem; font-weight: 700; }
+    .text-link:hover { text-decoration: underline; }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 0.75rem;
+    }
+    .cat-box {
+      background: #ffffff;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 1.25rem;
+      padding: 1.25rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+    }
+    .cat-box:hover, .cat-box.active {
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px rgba(0, 146, 69, 0.12);
+      transform: translateY(-2px);
+    }
+    .cat-icon-circle {
+      width: 3.25rem;
+      height: 3.25rem;
+      border-radius: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.65rem;
+      transition: transform 0.2s;
+    }
+    .cat-box:hover .cat-icon-circle { transform: scale(1.08); }
+    .cat-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: #ecfdf5;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      margin-bottom: 0.35rem;
+    }
+    .cat-box.active .cat-badge, .cat-box:hover .cat-badge {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .cat-name { font-size: 0.85rem; font-weight: 900; color: #191919; }
+    .cat-box.active .cat-name, .cat-box:hover .cat-name { color: var(--primary); }
+
+    /* Flash Sale */
+    .time-deal-section {
+      margin: 2.5rem 1.5rem 0;
+      background: linear-gradient(135deg, #111827 0%, #064e3b 100%);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      color: #fff;
+    }
+    .deal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .deal-badge { font-size: 0.75rem; font-weight: 900; color: #fde047; margin-bottom: 0.25rem; }
+    .deal-title { font-size: 1.4rem; font-weight: 900; }
+    .deal-timer {
+      background: rgba(255,255,255,0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 1rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    #timer-box { font-family: monospace; font-size: 1rem; font-weight: 900; background: var(--primary); padding: 0.2rem 0.5rem; border-radius: 0.4rem; }
+
+    /* 4-Columns Product Grid */
+    .products-grid.four-cols {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+    }
+    .product-card {
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      color: var(--text-main);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .card-thumb-wrap { position: relative; aspect-ratio: 1/1; width: 100%; background: #f3f4f6; overflow: hidden; }
+    .card-thumb { width: 100%; height: 100%; object-fit: cover; }
+    .badge-discount-top {
+      position: absolute;
+      top: 0.6rem;
+      left: 0.6rem;
+      background: #dc2626;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 900;
+      padding: 0.2rem 0.45rem;
+      border-radius: 0.35rem;
+    }
+    .btn-card-wish {
+      position: absolute;
+      top: 0.6rem;
+      right: 0.6rem;
+      width: 2rem;
+      height: 2rem;
+      background: rgba(255,255,255,0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-card-cart {
+      position: absolute;
+      bottom: 0.6rem;
+      right: 0.6rem;
+      width: 2.25rem;
+      height: 2.25rem;
+      background: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .btn-card-cart:hover { background: var(--primary); color: #fff; }
+    .card-info { padding: 1rem; display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
+    .card-ingredient-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem; }
+    .ing-tag {
+      font-size: 0.65rem;
+      font-weight: 800;
+      background: #ecfdf5;
+      color: var(--primary);
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.3rem;
+    }
+    .card-prod-name { font-size: 0.95rem; font-weight: 900; line-height: 1.3; margin-bottom: 0.25rem; }
+    .card-prod-sub { font-size: 0.75rem; color: var(--text-sub); line-height: 1.3; }
+    .card-price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 0.75rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid #f3f4f6;
+    }
+    .original-price { font-size: 0.75rem; text-decoration: line-through; color: var(--text-muted); display: block; }
+    .current-price { font-size: 1.1rem; font-weight: 900; }
+    .card-rating { font-size: 0.75rem; font-weight: 700; color: #f59e0b; }
+
+    /* Bottom Features */
+    .bottom-features-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      padding: 2.5rem 1.5rem 0;
+    }
+    .feature-card {
+      position: relative;
+      min-height: 340px;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    }
+    .creator-card { background: url("https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1000&auto=format&fit=crop") center/cover no-repeat; }
+    .ai-card { background: url("https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop") center/cover no-repeat; }
+    .feature-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.88) 100%); }
+    .feature-overlay.green-tint { background: linear-gradient(180deg, rgba(6,78,59,0.4) 0%, rgba(6,78,59,0.92) 100%); }
+    .feature-card-content {
+      position: relative;
+      z-index: 10;
+      padding: 2.5rem;
+      color: #fff;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .feature-tag {
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(4px);
+      color: #fde047;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      width: fit-content;
+      margin-bottom: 0.5rem;
+    }
+    .feature-title { font-size: 2rem; font-weight: 900; margin-bottom: 0.5rem; }
+    .feature-desc { font-size: 0.85rem; color: #e5e7eb; margin-bottom: 1.25rem; line-height: 1.5; }
+    .btn-white-pill {
+      background: #fff;
+      color: var(--text-main);
+      padding: 0.6rem 1.25rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      width: fit-content;
+    }
+    .btn-primary-pill {
+      background: var(--primary);
+      color: #fff;
+      padding: 0.6rem 1.25rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      width: fit-content;
+    }
+
+    /* Catalog View */
+    .catalog-layout { display: flex; min-height: calc(100vh - 120px); }
+    .sidebar { width: 260px; background: #e7e9ec; border-right: 1px solid #d1d5db; padding: 1.25rem; flex-shrink: 0; }
+    .sidebar-header { padding-bottom: 1rem; border-bottom: 1px solid #d1d5db; margin-bottom: 1rem; }
+    .sidebar-title { font-size: 1.2rem; font-weight: 900; }
+    .sidebar-subtitle { font-size: 0.7rem; color: var(--text-sub); }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 0.35rem; }
+    .sidebar-cat-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.75rem;
+      border-radius: 0.65rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #374151;
+    }
+    .sidebar-cat-btn:hover { background: rgba(0,0,0,0.05); }
+    .sidebar-cat-btn.active { background: var(--primary); color: #fff; }
+    .filter-box { margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid #d1d5db; }
+    .filter-title { font-size: 0.8rem; font-weight: 900; margin-bottom: 0.75rem; }
+    .filter-checkbox { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #4b5563; margin-bottom: 0.5rem; cursor: pointer; }
+    .catalog-content { flex: 1; padding: 1.5rem 2rem; }
+    .catalog-top-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); }
+    .catalog-status { font-size: 0.95rem; font-weight: 700; }
+    .catalog-controls { display: flex; align-items: center; gap: 0.75rem; }
+    .select-wrapper select {
+      padding: 0.45rem 1rem 0.45rem 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: #fff;
+    }
+    .btn-ai-recipe {
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 0.45rem 1rem;
+      border-radius: 9999px;
+    }
+
+    /* Footer */
+    .footer { background: #f6f7f9; border-top: 1px solid var(--border-color); padding: 2.5rem 1.5rem 1.5rem; font-size: 0.75rem; color: var(--text-sub); }
+    .footer-inner { max-width: 1680px; margin: 0 auto 2rem; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2rem; }
+    .footer-text { line-height: 1.6; max-width: 450px; }
+    .footer h4 { font-size: 0.85rem; font-weight: 900; color: var(--text-main); margin-bottom: 0.5rem; }
+    .phone { font-size: 1.25rem; font-weight: 900; color: var(--text-main); margin-bottom: 0.25rem; }
+    .footer-links { list-style: none; line-height: 1.8; }
+    .footer-links a { color: inherit; text-decoration: none; }
+    .footer-bottom { max-width: 1680px; margin: 0 auto; padding-top: 1.25rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); }
+
+    /* Modals & Drawers */
+    .modal-backdrop, .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .drawer-backdrop { justify-content: flex-end; padding: 0; }
+    .modal-card { background: #fff; border-radius: 1.5rem; width: 100%; max-width: 440px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
+    .popup-card, .story-card, .ai-modal-card { max-width: 600px; }
+    .modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 1.15rem; font-weight: 900; }
+    .modal-header .sub { font-size: 0.75rem; color: var(--text-sub); }
+    .close-modal-btn { padding: 0.25rem; color: var(--text-muted); font-size: 1.2rem; }
+    .close-modal-btn.white { color: #fff; position: absolute; top: 1rem; right: 1rem; }
+    .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.85rem; }
+    .input-group label { display: block; font-size: 0.75rem; font-weight: 800; margin-bottom: 0.35rem; }
+    .input-group input { width: 100%; padding: 0.65rem 0.85rem; border-radius: 0.75rem; border: 1px solid var(--border-color); background: #f9fafb; font-size: 0.85rem; }
+    .input-group input:focus { outline: none; border-color: var(--primary); background: #fff; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+    .form-row-between { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; }
+    .btn-modal-submit { background: var(--primary); color: #fff; font-size: 0.9rem; font-weight: 900; padding: 0.75rem; border-radius: 0.75rem; margin-top: 0.5rem; }
+    .btn-modal-submit:hover { background: var(--primary-hover); }
+    .social-login-group { margin-top: 0.75rem; padding-top: 1rem; border-top: 1px solid #f3f4f6; text-align: center; }
+    .social-login-group p { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .social-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .social-btns button { padding: 0.5rem; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; }
+    .btn-kakao { background: #fee500; color: #3c1e1e; }
+    .btn-naver { background: #03c75a; color: #fff; }
+    .btn-google { background: #f3f4f6; border: 1px solid var(--border-color); }
+    .modal-footer-switch { text-align: center; font-size: 0.75rem; color: var(--text-sub); margin-top: 0.5rem; }
+
+    .popup-hero { background: linear-gradient(135deg, #004d24, #009245); color: #fff; padding: 2.5rem 2rem; position: relative; text-align: center; }
+    .popup-badge { background: rgba(255,255,255,0.2); font-size: 0.7rem; font-weight: 900; color: #fde047; padding: 0.2rem 0.6rem; border-radius: 9999px; }
+    .popup-hero h2 { font-size: 1.75rem; font-weight: 900; margin: 0.6rem 0 0.25rem; }
+    .popup-hero p { font-size: 0.85rem; color: #d1fae5; }
+    .coupon-box {
+      background: #fff;
+      color: var(--text-main);
+      border-radius: 1rem;
+      padding: 1rem;
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 2px dashed #86efac;
+    }
+    .coupon-box .tag { font-size: 0.65rem; font-weight: 800; color: var(--primary); }
+    .coupon-box h4 { font-size: 1.1rem; font-weight: 900; margin: 0.15rem 0; }
+    .coupon-box .sub { font-size: 0.7rem; color: var(--text-muted); }
+    .popup-footer { padding: 1rem 1.5rem; background: #f9fafb; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; }
+    .btn-close-gray { padding: 0.35rem 0.75rem; background: #e5e7eb; border-radius: 0.5rem; font-weight: 700; }
+
+    .ai-modal-header { background: var(--primary); color: #fff; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .ai-modal-body { padding: 1.5rem; }
+    .recipe-tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; }
+    .recipe-tab { padding: 0.4rem 0.75rem; border-radius: 9999px; background: #f3f4f6; font-size: 0.75rem; font-weight: 700; color: var(--text-sub); }
+    .recipe-tab.active { background: var(--primary); color: #fff; }
+    .ai-input-form { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .ai-input-form input { flex: 1; padding: 0.65rem 0.85rem; border-radius: 0.75rem; border: 1px solid var(--border-color); font-size: 0.8rem; }
+    .btn-ai-generate { background: var(--primary); color: #fff; padding: 0.65rem 1rem; border-radius: 0.75rem; font-size: 0.8rem; font-weight: 800; }
+    .recipe-result-box { background: #f9fafb; border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.25rem; font-size: 0.85rem; line-height: 1.6; }
+
+    /* Drawers */
+    .drawer-panel { width: 100%; max-width: 420px; height: 100%; background: #fff; display: flex; flex-direction: column; }
+    .drawer-header { padding: 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    .drawer-header h3 { font-size: 1.1rem; font-weight: 900; }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+    .drawer-item { display: flex; gap: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 0.75rem; border: 1px solid var(--border-color); }
+    .drawer-thumb { width: 4.5rem; height: 4.5rem; border-radius: 0.5rem; object-fit: cover; }
+    .drawer-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .drawer-qty { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
+    .drawer-qty button { width: 1.4rem; height: 1.4rem; background: #e5e7eb; border-radius: 0.25rem; font-weight: 900; }
+    .drawer-footer { padding: 1.25rem; border-top: 1px solid var(--border-color); background: #f9fafb; }
+    .price-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 0.35rem; }
+    .price-row.total { font-size: 1rem; font-weight: 900; color: var(--text-main); padding-top: 0.5rem; border-top: 1px solid var(--border-color); margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden">
+    <span>✅</span>
+    <span id="toast-text"></span>
+  </div>
+
+  <!-- Top Announcement Bar -->
+  <div id="top-banner" class="top-banner">
+    <div class="top-banner-inner">
+      <div class="top-banner-text">
+        <span class="badge-welcome">WELCOME</span>
+        <span>🚚 오늘 밤 11시 전 주문 시 <strong>내일 아침 7시 도착</strong>! 지금 가입하면 <strong>5,000원 쿠폰팩</strong> 즉시 지급</span>
+        <button id="top-coupon-btn" class="text-btn underline">혜택 받기 &rarr;</button>
+      </div>
+      <button id="close-top-banner" class="icon-btn-text">✕</button>
+    </div>
+  </div>
+
+  <!-- Global Header -->
+  <header class="header">
+    <div class="header-inner">
+      <!-- Left Brand -->
+      <div class="brand-group">
+        <button id="btn-brand-home" class="brand-logo-btn">
+          <span class="logo-symbol">O</span>
+          <span class="logo-title">서비스 제목</span>
+        </button>
+        <span class="badge-subtitle">서비스 부제목</span>
+        <button id="btn-header-ai" class="badge-ai-btn">
+          <span>✨ AI</span>
+        </button>
+      </div>
+
+      <!-- Center Search Bar -->
+      <div class="search-container">
+        <div class="search-box">
+          <input type="text" id="search-input" placeholder="피하고 싶은 원재료명이나 찾고 있는 성분을 검색해 보세요 (#저당 #글루텐프리)" />
+          <button id="btn-search" class="search-submit-btn">🔍</button>
+        </div>
+        <div class="search-hints">
+          <span class="hint-label">인기 성분:</span>
+          <button class="hint-tag" data-tag="저당">#저당</button>
+          <button class="hint-tag" data-tag="비건">#비건</button>
+          <button class="hint-tag" data-tag="유기농">#유기농</button>
+          <button class="hint-tag" data-tag="단백질">#단백질</button>
+          <button class="hint-tag" data-tag="무첨가">#무첨가</button>
+        </div>
+      </div>
+
+      <!-- Right Controls -->
+      <div class="header-actions">
+        <div class="view-switch-pill">
+          <button id="tab-home" class="switch-btn active">홈</button>
+          <button id="tab-catalog" class="switch-btn">식품 목록</button>
+        </div>
+
+        <div id="auth-unlogged" class="auth-group">
+          <button id="btn-nav-signup" class="btn-pill-line">회원가입</button>
+          <button id="btn-nav-login" class="btn-pill-line">로그인</button>
+        </div>
+        <div id="auth-logged" class="auth-group hidden">
+          <span id="user-name-badge" class="badge-user"></span>
+          <button id="btn-nav-logout" class="btn-pill-gray">로그아웃</button>
+        </div>
+
+        <button id="btn-open-cart" class="btn-cart">
+          <span>🛍 장바구니</span>
+          <span id="cart-counter" class="counter-badge">2</span>
+        </button>
+
+        <button id="btn-open-wishlist" class="btn-wishlist">
+          <span style="font-size: 1.25rem;">❤️</span>
+          <span id="wishlist-counter" class="counter-badge red">2</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="main-container">
+    <!-- 1. Home View -->
+    <main id="view-home" class="view-section">
+      <!-- Main Popup Banner -->
+      <section class="hero-section">
+        <div class="hero-banner">
+          <div class="hero-content">
+            <span class="hero-tag">POPUP EVENT &middot; 메인 팝업창</span>
+            <h1 class="hero-title">메인 팝업창</h1>
+            <p class="hero-highlight">당신이 먹는 존재를 인식하세요. 칼로리가 아니라 필요한 '성분'으로 식품을 선택하세요.</p>
+            <p class="hero-sub">신규 가입 시 5,000원 웰컴 쿠폰팩 즉시 지급 &middot; 48개 장인 농가 산지직송</p>
+            <div class="hero-buttons">
+              <button id="hero-btn-popup" class="btn-primary-hero">🎁 메인 팝업창 열기 &amp; 쿠폰 받기</button>
+              <button id="hero-btn-catalog" class="btn-secondary-hero">인기 성분 식품관 가기 &rarr;</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 10 Category Blocks -->
+      <section class="categories-section">
+        <div class="section-header">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <h2 class="section-title">인기 카테고리 바로가기</h2>
+            <span style="font-size: 0.75rem; color: #9ca3af; font-weight: 500;">엄선된 10가지 프리미엄 미식관</span>
+          </div>
+          <button id="btn-see-all-cats" class="text-link">전체 식품관 보기 &rarr;</button>
+        </div>
+
+        <div id="category-grid" class="category-grid">
+          <!-- 1. 전체 -->
+          <div class="cat-box active" onclick="selectCategory('all')">
+            <div class="cat-icon-circle" style="background-color: #ecfdf5; color: #009245;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </div>
+            <span class="cat-badge">카테고리</span>
+            <span class="cat-name">전체</span>
+          </div>
+          <!-- 2. 베이커리 -->
+          <div class="cat-box" onclick="selectCategory('bakery')">
+            <div class="cat-icon-circle" style="background-color: #fffbeb; color: #d97706;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4.6 13-1.9 2.4a2 2 0 0 0 0 2.8 2 2 0 0 0 2.8 0L8 16.3"/><path d="m19.4 13 1.9 2.4a2 2 0 0 1 0 2.8 2 2 0 0 1-2.8 0L16 16.3"/><path d="M7 15h10"/><path d="M6 13a6 6 0 0 1 12 0"/></svg>
+            </div>
+            <span class="cat-badge">카테고리</span>
+            <span class="cat-name">베이커리</span>
+          </div>
+          <!-- 3. 음료/티 -->
+          <div class="cat-box" onclick="selectCategory('beverage')">
+            <div class="cat-icon-circle" style="background-color: #fff7ed; color: #ea580c;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h12Z"/><path d="M6 2v2"/><path d="M16 10h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2"/></svg>
+            </div>
+            <span class="cat-badge">카테고리</span>
+            <span class="cat-name">음료/티</span>
+          </div>
+          <!-- 4. 디저트 -->
+          <div class="cat-box" onclick="selectCategory('dessert')">
+            <div class="cat-icon-circle" style="background-color: #fff1f2; color: #f43f5e;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 11 4.38 8.76a2 2 0 0 0 3.24 0L19 11"/><path d="M13 3a4 4 0 0 0-4 4v4h8V7a4 4 0 0 0-4-4Z"/></svg>
+            </div>
+            <span class="cat-badge">카테고리</span>
+            <span class="cat-name">디저트</span>
+          </div>
+          <!-- 5. 신선식품 -->
+          <div class="cat-box" onclick="selectCategory('fresh')">
+            <div class="cat-icon-circle" style="background-color: #fef2f2; color: #ef4444;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>
+            </div>
+            <span class="cat-badge">카테고리</span>
+            <span class="cat-name">신선식품</span>
+          </div>
+          <!-- 6. 간편식 -->
+          <div class="cat-box" onclick="selectCategory('meal_kit')">
+            <div class="cat-icon-circle" style="background-color: #fefce8; color: #ca8a04;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M4 15h16c0 2.2-1.8 4-4 4H8c-2.2 0-4-1.8-4-4Z"/><path d="M7 11V7"/><path d="M12 11V5"/><path d="M17 11V7"/></svg>
+            </div>
+            <span class="cat-badge">카테고리</span>
+            <span class="cat-name">간편식</span>
+          </div>
+          <!-- 7. 유기농 -->
+          <div class="cat-box" onclick="selectCategory('organic')">
+            <div class="cat-icon-circle" style="background-color: #f0fdf4; color: #16a34a;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8Z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2Z"/></svg>
+            </div>
+            <span class="cat-badge">카테고리</span>
+            <span class="cat-name">유기농</span>
+          </div>
+          <!-- 8. 소스/양념 -->
+          <div class="cat-box" onclick="selectCategory('sauce')">
+            <div class="cat-icon-circle" style="background-color: #fafaf9; color: #57534e;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v6.5L4 18a2 2 0 0 0 1.7 3h12.6a2 2 0 0 0 1.7-3L14 8.5V2"/><path d="M8.5 2h7"/></svg>
+            </div>
+            <span class="cat-badge">카테고리</span>
+            <span class="cat-name">소스/양념</span>
+          </div>
+          <!-- 9. 견과/스낵 -->
+          <div class="cat-box" onclick="selectCategory('nuts')">
+            <div class="cat-icon-circle" style="background-color: #fef3c7; color: #b45309;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7a5 5 0 0 0-5-5Z"/><path d="m8 10-2.5 3a4.5 4.5 0 0 0 2.5 7.5c2.5 0 4-2 4-5.5"/><path d="m16 10 2.5 3a4.5 4.5 0 0 1-2.5 7.5c-2.5 0-4-2-4-5.5"/></svg>
+            </div>
+            <span class="cat-badge">카테고리</span>
+            <span class="cat-name">견과/스낵</span>
+          </div>
+          <!-- 10. 건강식품 -->
+          <div class="cat-box" onclick="selectCategory('healthy')">
+            <div class="cat-icon-circle" style="background-color: #f0fdfa; color: #0d9488;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>
+            </div>
+            <span class="cat-badge">카테고리</span>
+            <span class="cat-name">건강식품</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Flash Sale -->
+      <section class="time-deal-section">
+        <div class="deal-header">
+          <div>
+            <div class="deal-badge">🔥 TODAY'S SPECIAL TIME DEAL</div>
+            <h3 class="deal-title">오늘의 타임 특가 &middot; 성분 안심 큐레이션</h3>
+          </div>
+          <div class="deal-timer">
+            남은 시간 <span id="timer-box">07:38:45</span>
+          </div>
+        </div>
+        <div id="deal-products-grid" class="products-grid four-cols"></div>
+      </section>
+
+      <!-- Bottom Feature Cards -->
+      <section class="bottom-features-section">
+        <div id="card-creator-story" class="feature-card creator-card">
+          <div class="feature-overlay"></div>
+          <div class="feature-card-content">
+            <span class="feature-tag">STORY MAGAZINE #08</span>
+            <h2 class="feature-title">제작자의 이야기</h2>
+            <p class="feature-desc">"화학 첨가물 대신 자연 발효종의 숨결을 믿습니다." — 강원도 영월 아티장 베이커의 원재료 자각 철학.</p>
+            <button class="btn-white-pill">📖 스토리 전문 읽기</button>
+          </div>
+        </div>
+
+        <div id="card-ai-service" class="feature-card ai-card">
+          <div class="feature-overlay green-tint"></div>
+          <div class="feature-card-content">
+            <span class="feature-tag">✨ AI MICHELIN SOMMELIER</span>
+            <h2 class="feature-title">AI 서비스</h2>
+            <p class="feature-desc">피하고 싶은 원재료나 건강 목표(#저당, #고단백)를 분석해 최적의 클린 레시피를 제안합니다.</p>
+            <button class="btn-primary-pill">✨ AI 맞춤 레시피 생성 &rarr;</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 2. Catalog View -->
+    <main id="view-catalog" class="view-section hidden">
+      <div class="catalog-layout">
+        <aside class="sidebar">
+          <div class="sidebar-header">
+            <h2 class="sidebar-title">카테고리</h2>
+            <span class="sidebar-subtitle">성분/목적별 탐색</span>
+          </div>
+          <div id="sidebar-categories" class="sidebar-nav"></div>
+
+          <div class="filter-box">
+            <h4 class="filter-title">⚙️ 상세 필터</h4>
+            <label class="filter-checkbox"><input type="checkbox" id="filter-fast" /> 샛별배송 상품만</label>
+            <label class="filter-checkbox"><input type="checkbox" id="filter-organic" /> 유기농 &amp; 비건 인증</label>
+            <label class="filter-checkbox"><input type="checkbox" id="filter-discount" /> 할인 특가 상품만</label>
+          </div>
+        </aside>
+
+        <div class="catalog-content">
+          <div class="catalog-top-bar">
+            <div class="catalog-status">전체 <strong id="catalog-count" class="text-primary">12</strong>개 식품</div>
+            <div class="catalog-controls">
+              <div class="select-wrapper">
+                <select id="sort-select">
+                  <option value="popularity">인기도순</option>
+                  <option value="latest">최신순</option>
+                  <option value="price_asc">낮은 가격순</option>
+                  <option value="price_desc">높은 가격순</option>
+                  <option value="rating">평점순</option>
+                </select>
+              </div>
+              <button id="btn-catalog-ai-recipe" class="btn-ai-recipe">✨ AI 레시피</button>
+            </div>
+          </div>
+          <div id="catalog-products-grid" class="products-grid four-cols"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <div class="brand-group" style="margin-bottom: 0.5rem;">
+          <span class="logo-symbol small">O</span>
+          <span class="logo-title small">서비스 제목</span>
+        </div>
+        <p class="footer-text">단순 칼로리 계산이 아닌, 소비자가 자신이 섭취하는 원재료와 성분을 바르게 인식할 수 있도록 돕는 프리미엄 푸드 리터러시 플랫폼입니다.</p>
+      </div>
+      <div>
+        <h4>고객센터</h4>
+        <p class="phone">1588-0092</p>
+        <p>평일 09:00 - 18:00 (점심 12:00 - 13:00)</p>
+      </div>
+      <div>
+        <h4>안내 &amp; 정책</h4>
+        <ul class="footer-links">
+          <li><a href="#" id="link-story">제작자의 이야기</a></li>
+          <li><a href="#" id="link-ai">AI 맞춤 레시피 가이드</a></li>
+          <li><a href="#">이용약관</a></li>
+          <li><a href="#">개인정보처리방침</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 서비스 제목. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <!-- ================= MODALS & DRAWERS ================= -->
+
+  <!-- 로그인 모달 -->
+  <div id="modal-login" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="brand-group">
+          <span class="logo-symbol small">O</span>
+          <div>
+            <h3>로그인</h3>
+            <p class="sub">서비스에 오신 것을 환영합니다</p>
+          </div>
+        </div>
+        <button class="close-modal-btn">✕</button>
+      </div>
+      <form id="form-login" class="modal-body">
+        <div class="input-group">
+          <label>이메일 아이디</label>
+          <input type="email" id="login-email" placeholder="name@example.com" required />
+        </div>
+        <div class="input-group">
+          <label>비밀번호</label>
+          <input type="password" id="login-password" placeholder="비밀번호를 입력하세요" required />
+        </div>
+        <div class="form-row-between">
+          <label><input type="checkbox" checked /> 로그인 상태 유지</label>
+          <button type="button" id="btn-demo-login" class="text-btn" style="color: var(--primary);">체험용 계정 자동 입력</button>
+        </div>
+        <button type="submit" class="btn-modal-submit">로그인하기</button>
+        <div class="social-login-group">
+          <p>간편 소셜 로그인</p>
+          <div class="social-btns">
+            <button type="button" class="btn-kakao">카카오</button>
+            <button type="button" class="btn-naver">네이버</button>
+            <button type="button" class="btn-google">구글</button>
+          </div>
+        </div>
+        <p class="modal-footer-switch">계정이 없으신가요? <button type="button" id="switch-to-signup" class="text-link">회원가입하기</button></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- 회원가입 모달 -->
+  <div id="modal-signup" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="brand-group">
+          <span class="logo-symbol small">O</span>
+          <div>
+            <h3>회원가입</h3>
+            <p class="sub">첫 구매 <strong>5,000원 쿠폰</strong> 즉시 지급</p>
+          </div>
+        </div>
+        <button class="close-modal-btn">✕</button>
+      </div>
+      <form id="form-signup" class="modal-body">
+        <div class="input-group">
+          <label>이름 *</label>
+          <input type="text" id="signup-name" placeholder="홍길동" required />
+        </div>
+        <div class="input-group">
+          <label>이메일 아이디 *</label>
+          <input type="email" id="signup-email" placeholder="example@email.com" required />
+        </div>
+        <div class="grid-2">
+          <div class="input-group">
+            <label>비밀번호 *</label>
+            <input type="password" id="signup-password" placeholder="6자 이상" required />
+          </div>
+          <div class="input-group">
+            <label>비밀번호 확인 *</label>
+            <input type="password" id="signup-password-confirm" placeholder="재입력" required />
+          </div>
+        </div>
+        <button type="submit" class="btn-modal-submit">회원가입 완료하기</button>
+        <p class="modal-footer-switch">이미 계정이 있으신가요? <button type="button" id="switch-to-login" class="text-link">로그인하기</button></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- 메인 팝업 모달 -->
+  <div id="modal-main-popup" class="modal-backdrop hidden">
+    <div class="modal-card popup-card">
+      <div class="popup-hero">
+        <button class="close-modal-btn white">✕</button>
+        <span class="popup-badge">SPECIAL EVENT</span>
+        <h2>메인 팝업창 특별 혜택</h2>
+        <p>칼로리보다 원재료와 성분! 건강한 식단을 위한 웰컴 쿠폰팩</p>
+        <div class="coupon-box">
+          <div>
+            <span class="tag">WELCOME GIFT</span>
+            <h4>5,000원 웰컴 할인 쿠폰</h4>
+            <span class="sub">20,000원 이상 구매 시 즉시 적용</span>
+          </div>
+          <button id="btn-claim-coupon" class="btn-primary-pill">쿠폰받기</button>
+        </div>
+      </div>
+      <div class="popup-footer">
+        <label><input type="checkbox" /> 오늘 하루 다시 보지 않기</label>
+        <button class="btn-close-gray close-modal-btn">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI 레시피 모달 -->
+  <div id="modal-ai-recipe" class="modal-backdrop hidden">
+    <div class="modal-card ai-modal-card">
+      <div class="ai-modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.5rem;">✨</span>
+          <div>
+            <h3>AI 셰프 레시피 &amp; 맞춤 성분 분석</h3>
+            <p style="font-size: 0.75rem; opacity: 0.9;">보유한 식재료와 건강 목표 기반 레시피</p>
+          </div>
+        </div>
+        <button class="close-modal-btn white">✕</button>
+      </div>
+      <div class="ai-modal-body">
+        <div class="recipe-tabs">
+          <button class="recipe-tab active" data-topic="brunch">🥖 든든한 힐링 브런치</button>
+          <button class="recipe-tab" data-topic="homecafe">🍹 청량 홈카페 에이드</button>
+          <button class="recipe-tab" data-topic="dessert">🍓 헬시 과일 디저트</button>
+        </div>
+        <div id="ai-recipe-result" class="recipe-result-box"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 제작자의 이야기 모달 -->
+  <div id="modal-creator-story" class="modal-backdrop hidden">
+    <div class="modal-card story-card">
+      <div class="popup-hero" style="background: linear-gradient(135deg, #1f2937, #111827);">
+        <button class="close-modal-btn white">✕</button>
+        <span class="popup-badge">장인 정신</span>
+        <h2>제작자의 이야기</h2>
+        <p>정직한 성분과 정성으로 빚어낸 자연 그대로의 가치</p>
+      </div>
+      <div class="modal-body" style="font-size: 0.85rem; line-height: 1.6; color: #4b5563;">
+        <h3 style="color: #111827; font-size: 1.1rem; margin-bottom: 0.5rem;">"식탁 위의 음식은 내가 어떤 사람인지를 보여줍니다."</h3>
+        <p>우리는 단순 칼로리 숫자에 집착하는 다이어트에 지친 이들을 위해 시작되었습니다. 화학 첨가물을 배제하고 본연의 영양에 충실한 48개 장인 농가의 식품만을 선별합니다.</p>
+        <button class="btn-primary-pill close-modal-btn" style="align-self: flex-end; margin-top: 1rem;">확인 완료</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 장바구니 드로어 -->
+  <div id="drawer-cart" class="drawer-backdrop hidden">
+    <div class="drawer-panel">
+      <div class="drawer-header">
+        <h3>🛍 장바구니 (<span id="cart-drawer-count">0</span>)</h3>
+        <button class="close-drawer-btn close-modal-btn">✕</button>
+      </div>
+      <div id="cart-items-list" class="drawer-body"></div>
+      <div class="drawer-footer">
+        <div class="price-row"><span>상품 금액</span><span id="cart-subtotal">0원</span></div>
+        <div class="price-row"><span>배송비 (3만원 이상 무료)</span><span id="cart-delivery">0원</span></div>
+        <div class="price-row total"><span>총 결제금액</span><span id="cart-total" class="text-primary">0원</span></div>
+        <button id="btn-checkout" class="btn-primary-pill" style="width: 100%; margin-top: 0.75rem;">주문하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 위시리스트 드로어 -->
+  <div id="drawer-wishlist" class="drawer-backdrop hidden">
+    <div class="drawer-panel">
+      <div class="drawer-header">
+        <h3>❤️ 관심 식품 (<span id="wishlist-drawer-count">0</span>)</h3>
+        <button class="close-drawer-btn close-modal-btn">✕</button>
+      </div>
+      <div id="wishlist-items-list" class="drawer-body"></div>
+    </div>
+  </div>
+
+  <!-- ================= Embedded JavaScript ================= -->
+  <script>
+    const CATEGORIES = [
+      { id: 'all', name: '전체', count: 12 },
+      { id: 'bakery', name: '베이커리', count: 3 },
+      { id: 'beverage', name: '음료/티', count: 5 },
+      { id: 'dessert', name: '디저트', count: 4 },
+      { id: 'fresh', name: '신선식품', count: 2 },
+      { id: 'meal_kit', name: '간편식', count: 2 },
+      { id: 'organic', name: '유기농', count: 4 },
+      { id: 'sauce', name: '소스/양념', count: 2 },
+      { id: 'nuts', name: '견과/스낵', count: 2 },
+      { id: 'healthy', name: '건강식품', count: 3 }
+    ];
+
+    let PRODUCTS = [
+      {
+        id: 'prod-1',
+        name: '유기농 통호밀 사워도우 깜빠뉴',
+        subtitle: '천연 효모로 48시간 저온 숙성한 고소한 호밀빵',
+        category: 'bakery',
+        price: 8500,
+        originalPrice: 9500,
+        imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=800&auto=format&fit=crop',
+        isLiked: true,
+        rating: 4.9,
+        reviewCount: 328,
+        tags: ['유기농', '비건', '저당']
+      },
+      {
+        id: 'prod-2',
+        name: '영국식 로열 밀크티 & 수제 버터 쿠키',
+        subtitle: '스리랑카 우바 홍차와 유기농 우유의 깊고 부드러운 조화',
+        category: 'beverage',
+        price: 9800,
+        originalPrice: 11000,
+        imageUrl: 'https://images.unsplash.com/photo-1577968897966-3d4325b36b61?q=80&w=800&auto=format&fit=crop',
+        isLiked: false,
+        rating: 4.8,
+        reviewCount: 215,
+        tags: ['핸드메이드', '디저트페어링']
+      },
+      {
+        id: 'prod-3',
+        name: '제주 유기농 라임 모히또 에이드 베이스',
+        subtitle: '생 애플민트와 제주 생라임의 청량하고 상큼한 풍미',
+        category: 'beverage',
+        price: 7200,
+        originalPrice: 8500,
+        imageUrl: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?q=80&w=800&auto=format&fit=crop',
+        isLiked: true,
+        rating: 4.9,
+        reviewCount: 184,
+        tags: ['제주산', '무가당탄산수']
+      },
+      {
+        id: 'prod-4',
+        name: '생딸기 그릭 요거트 판나코타 푸딩',
+        subtitle: '논산 설향 생딸기 콤포트와 무가당 그릭요거트의 만남',
+        category: 'dessert',
+        price: 6800,
+        originalPrice: 7800,
+        imageUrl: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=800&auto=format&fit=crop',
+        isLiked: false,
+        rating: 4.7,
+        reviewCount: 142,
+        tags: ['생과일', '단백질', '저칼로리']
+      },
+      {
+        id: 'prod-5',
+        name: '아티장 곡물 치아바타 & 올리브 포카치아',
+        subtitle: '엑스트라 버진 올리브유와 블랙 올리브의 풍미',
+        category: 'bakery',
+        price: 7900,
+        imageUrl: 'https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?q=80&w=800&auto=format&fit=crop',
+        isLiked: false,
+        rating: 4.8,
+        reviewCount: 96,
+        tags: ['비건', '올리브유']
+      },
+      {
+        id: 'prod-6',
+        name: '제주 하우스 말차 라떼 & 마카롱 세트',
+        subtitle: '첫물 유기농 녹차가루와 벨기에산 화이트초콜릿',
+        category: 'beverage',
+        price: 10500,
+        originalPrice: 12000,
+        imageUrl: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?q=80&w=800&auto=format&fit=crop',
+        isLiked: false,
+        rating: 4.9,
+        reviewCount: 153,
+        tags: ['제주말차', '달콤쌉싸름']
+      },
+      {
+        id: 'prod-7',
+        name: '청포도 샤인머스캣 스파클링 에이드',
+        subtitle: '당도 선별 샤인머스캣 과육이 톡톡 씹히는 음료',
+        category: 'beverage',
+        price: 6500,
+        imageUrl: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=800&auto=format&fit=crop',
+        isLiked: false,
+        rating: 4.6,
+        reviewCount: 78,
+        tags: ['샤인머스캣', '시원한음료']
+      },
+      {
+        id: 'prod-8',
+        name: '블루베리 그래놀라 플레인 그릭 보울',
+        subtitle: '꾸덕한 수제 그릭요거트와 볶은 통귀리 그래놀라',
+        category: 'dessert',
+        price: 8900,
+        originalPrice: 9900,
+        imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=800&auto=format&fit=crop',
+        isLiked: false,
+        rating: 4.9,
+        reviewCount: 260,
+        tags: ['고단백', '식사대용']
+      }
+    ];
+
+    let cart = [
+      { product: PRODUCTS[0], quantity: 1 },
+      { product: PRODUCTS[1], quantity: 1 }
+    ];
+
+    let currentView = 'home';
+    let selectedCategory = 'all';
+    let searchQuery = '';
+    let sortBy = 'popularity';
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-text').innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2400);
+    }
+
+    function setView(view) {
+      currentView = view;
+      document.getElementById('view-home').classList.toggle('hidden', view !== 'home');
+      document.getElementById('view-catalog').classList.toggle('hidden', view !== 'catalog');
+      document.getElementById('tab-home').classList.toggle('active', view === 'home');
+      document.getElementById('tab-catalog').classList.toggle('active', view === 'catalog');
+      if (view === 'catalog') renderCatalog();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function createCardHTML(p) {
+      const discount = p.originalPrice ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : null;
+      const tags = (p.tags || []).map(t => `<span class="ing-tag">#${t}</span>`).join('');
+      return `
+        <div class="product-card">
+          <div class="card-thumb-wrap">
+            <img class="card-thumb" src="${p.imageUrl}" alt="${p.name}" loading="lazy" />
+            ${discount ? `<span class="badge-discount-top">${discount}% OFF</span>` : ''}
+            <button class="btn-card-wish" onclick="toggleWishlist('${p.id}', event)">
+              <span style="color: ${p.isLiked ? '#ef4444' : '#9ca3af'}; font-size: 1rem;">${p.isLiked ? '❤️' : '🤍'}</span>
+            </button>
+            <button class="btn-card-cart" onclick="addToCart('${p.id}', event)">🛍</button>
+          </div>
+          <div class="card-info">
+            <div>
+              <div class="card-ingredient-tags">${tags}</div>
+              <h4 class="card-prod-name">${p.name}</h4>
+              <p class="card-prod-sub">${p.subtitle}</p>
+            </div>
+            <div class="card-price-row">
+              <div>
+                ${p.originalPrice ? `<span class="original-price">${p.originalPrice.toLocaleString()}원</span>` : ''}
+                <span class="current-price">${p.price.toLocaleString()}원</span>
+              </div>
+              <div class="card-rating">★ ${p.rating}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDealProducts() {
+      document.getElementById('deal-products-grid').innerHTML = PRODUCTS.slice(0, 4).map(createCardHTML).join('');
+    }
+
+    function renderCatalog() {
+      const sideNav = document.getElementById('sidebar-categories');
+      sideNav.innerHTML = CATEGORIES.map(c => `
+        <button class="sidebar-cat-btn ${selectedCategory === c.id ? 'active' : ''}" onclick="selectCategory('${c.id}')">
+          <span>${c.name}</span>
+          <span style="opacity: 0.6; font-size: 0.75rem;">${c.count}</span>
+        </button>
+      `).join('');
+
+      let filtered = PRODUCTS.filter(p => {
+        if (selectedCategory !== 'all' && p.category !== selectedCategory) return false;
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim();
+          return p.name.toLowerCase().includes(q) || (p.tags && p.tags.some(t => t.includes(q)));
+        }
+        return true;
+      });
+
+      document.getElementById('catalog-count').innerText = filtered.length;
+      document.getElementById('catalog-products-grid').innerHTML = filtered.map(createCardHTML).join('');
+    }
+
+    function selectCategory(id) {
+      selectedCategory = id;
+      document.querySelectorAll('.cat-box').forEach(b => b.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.cat-box')).find(b => b.getAttribute('onclick').includes(id));
+      if (activeBtn) activeBtn.classList.add('active');
+      setView('catalog');
+    }
+
+    function toggleWishlist(id, e) {
+      if (e) e.stopPropagation();
+      const p = PRODUCTS.find(x => x.id === id);
+      if (!p) return;
+      p.isLiked = !p.isLiked;
+      showToast(p.isLiked ? `'${p.name}' 관심 식품 추가` : `'${p.name}' 관심 해제`);
+      updateCounters();
+      renderDealProducts();
+      if (currentView === 'catalog') renderCatalog();
+    }
+
+    function addToCart(id, e) {
+      if (e) e.stopPropagation();
+      const p = PRODUCTS.find(x => x.id === id);
+      if (!p) return;
+      const exist = cart.find(i => i.product.id === id);
+      if (exist) exist.quantity++;
+      else cart.push({ product: p, quantity: 1 });
+      showToast(`'${p.name}' 장바구니에 담겼습니다.`);
+      updateCounters();
+    }
+
+    function updateCounters() {
+      const totalQty = cart.reduce((s, i) => s + i.quantity, 0);
+      document.getElementById('cart-counter').innerText = totalQty;
+      document.getElementById('cart-drawer-count').innerText = totalQty;
+      const likedCount = PRODUCTS.filter(p => p.isLiked).length;
+      document.getElementById('wishlist-counter').innerText = likedCount;
+      document.getElementById('wishlist-drawer-count').innerText = likedCount;
+    }
+
+    function renderCartDrawer() {
+      const box = document.getElementById('cart-items-list');
+      if (cart.length === 0) {
+        box.innerHTML = '<div style="text-align:center; padding:3rem 0; color:#9ca3af;">장바구니가 비어 있습니다.</div>';
+        document.getElementById('cart-total').innerText = '0원';
+        return;
+      }
+      const sub = cart.reduce((s, i) => s + i.product.price * i.quantity, 0);
+      const del = sub >= 30000 ? 0 : 3000;
+      box.innerHTML = cart.map(item => `
+        <div class="drawer-item">
+          <img src="${item.product.imageUrl}" class="drawer-thumb" />
+          <div class="drawer-info">
+            <h4>${item.product.name}</h4>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong>${(item.product.price * item.quantity).toLocaleString()}원</strong>
+              <div class="drawer-qty">
+                <button onclick="changeQty('${item.product.id}', -1)">-</button>
+                <span>${item.quantity}</span>
+                <button onclick="changeQty('${item.product.id}', 1)">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      document.getElementById('cart-subtotal').innerText = sub.toLocaleString() + '원';
+      document.getElementById('cart-delivery').innerText = del === 0 ? '무료' : '3,000원';
+      document.getElementById('cart-total').innerText = (sub + del).toLocaleString() + '원';
+    }
+
+    function changeQty(id, delta) {
+      const it = cart.find(i => i.product.id === id);
+      if (!it) return;
+      it.quantity += delta;
+      if (it.quantity <= 0) cart = cart.filter(i => i.product.id !== id);
+      updateCounters();
+      renderCartDrawer();
+    }
+
+    function renderWishlistDrawer() {
+      const box = document.getElementById('wishlist-items-list');
+      const liked = PRODUCTS.filter(p => p.isLiked);
+      if (liked.length === 0) {
+        box.innerHTML = '<div style="text-align:center; padding:3rem 0; color:#9ca3af;">관심 식품이 없습니다.</div>';
+        return;
+      }
+      box.innerHTML = liked.map(p => `
+        <div class="drawer-item">
+          <img src="${p.imageUrl}" class="drawer-thumb" />
+          <div class="drawer-info">
+            <h4>${p.name}</h4>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong>${p.price.toLocaleString()}원</strong>
+              <button class="btn-primary-pill" style="padding:0.25rem 0.6rem; font-size:0.75rem;" onclick="addToCart('${p.id}')">담기</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderRecipe(topic) {
+      const recipes = {
+        brunch: {
+          title: '아티장 사워도우 아보카도 부르스케타',
+          cal: '280 kcal',
+          ing: ['통호밀 깜빠뉴 2조각', '무가당 그릭 요거트 2큰술', '생라임 제스트 약간'],
+          steps: ['사워도우를 노릇하게 굽습니다.', '그릭요거트를 바르고 토핑을 올립니다.']
+        },
+        homecafe: {
+          title: '제주 라임 모히또 탄산 에이드',
+          cal: '65 kcal',
+          ing: ['라임 모히또 베이스 40ml', '무가당 탄산수 160ml', '생 애플민트'],
+          steps: ['민트를 으깨고 얼음을 채웁니다.', '탄산수를 부어 청량하게 완성합니다.']
+        },
+        dessert: {
+          title: '베리베리 그릭 판나코타 보울',
+          cal: '190 kcal',
+          ing: ['생딸기 판나코타 1개', '통곡물 그래놀라 30g'],
+          steps: ['볼에 그래놀라를 깔고 판나코타를 토핑합니다.']
+        }
+      };
+      const r = recipes[topic] || recipes.brunch;
+      document.getElementById('ai-recipe-result').innerHTML = `
+        <h4 style="font-size:1.1rem; font-weight:900; margin-bottom:0.35rem;">${r.title}</h4>
+        <p style="font-size:0.75rem; color:#6b7280; margin-bottom:0.6rem;">🔥 칼로리: ${r.cal}</p>
+        <strong>준비 재료:</strong>
+        <ul style="padding-left:1.2rem; margin:0.3rem 0 0.6rem;">${r.ing.map(x=>`<li>${x}</li>`).join('')}</ul>
+        <strong>조리 순서:</strong>
+        <ol style="padding-left:1.2rem; margin-top:0.3rem;">${r.steps.map(x=>`<li>${x}</li>`).join('')}</ol>
+      `;
+    }
+
+    // Event Bindings
+    window.addEventListener('DOMContentLoaded', () => {
+      renderDealProducts();
+      updateCounters();
+
+      document.getElementById('btn-brand-home').onclick = () => setView('home');
+      document.getElementById('tab-home').onclick = () => setView('home');
+      document.getElementById('tab-catalog').onclick = () => setView('catalog');
+      document.getElementById('btn-see-all-cats').onclick = () => setView('catalog');
+      document.getElementById('hero-btn-catalog').onclick = () => setView('catalog');
+
+      document.getElementById('btn-open-cart').onclick = () => { renderCartDrawer(); document.getElementById('drawer-cart').classList.remove('hidden'); };
+      document.getElementById('btn-open-wishlist').onclick = () => { renderWishlistDrawer(); document.getElementById('drawer-wishlist').classList.remove('hidden'); };
+
+      document.getElementById('btn-nav-login').onclick = () => document.getElementById('modal-login').classList.remove('hidden');
+      document.getElementById('btn-nav-signup').onclick = () => document.getElementById('modal-signup').classList.remove('hidden');
+      document.getElementById('btn-header-ai').onclick = () => { renderRecipe('brunch'); document.getElementById('modal-ai-recipe').classList.remove('hidden'); };
+      document.getElementById('btn-catalog-ai-recipe').onclick = () => { renderRecipe('brunch'); document.getElementById('modal-ai-recipe').classList.remove('hidden'); };
+      document.getElementById('card-ai-service').onclick = () => { renderRecipe('brunch'); document.getElementById('modal-ai-recipe').classList.remove('hidden'); };
+      document.getElementById('hero-btn-popup').onclick = () => document.getElementById('modal-main-popup').classList.remove('hidden');
+      document.getElementById('card-creator-story').onclick = () => document.getElementById('modal-creator-story').classList.remove('hidden');
+
+      document.querySelectorAll('.close-modal-btn').forEach(b => {
+        b.onclick = () => document.querySelectorAll('.modal-backdrop, .drawer-backdrop').forEach(m => m.classList.add('hidden'));
+      });
+
+      document.getElementById('switch-to-signup').onclick = () => {
+        document.getElementById('modal-login').classList.add('hidden');
+        document.getElementById('modal-signup').classList.remove('hidden');
+      };
+      document.getElementById('switch-to-login').onclick = () => {
+        document.getElementById('modal-signup').classList.add('hidden');
+        document.getElementById('modal-login').classList.remove('hidden');
+      };
+
+      document.getElementById('btn-demo-login').onclick = () => {
+        document.getElementById('login-email').value = 'green.user@example.com';
+        document.getElementById('login-password').value = '123456';
+      };
+
+      document.getElementById('form-login').onsubmit = (e) => {
+        e.preventDefault();
+        const name = document.getElementById('login-email').value.split('@')[0];
+        document.getElementById('auth-unlogged').classList.add('hidden');
+        document.getElementById('auth-logged').classList.remove('hidden');
+        document.getElementById('user-name-badge').innerText = `${name} 님`;
+        document.getElementById('modal-login').classList.add('hidden');
+        showToast(`환영합니다, ${name}님!`);
+      };
+
+      document.getElementById('btn-nav-logout').onclick = () => {
+        document.getElementById('auth-unlogged').classList.remove('hidden');
+        document.getElementById('auth-logged').classList.add('hidden');
+        showToast('로그아웃되었습니다.');
+      };
+
+      document.getElementById('btn-claim-coupon').onclick = () => {
+        showToast('5,000원 웰컴 쿠폰이 발급되었습니다!');
+        document.getElementById('modal-main-popup').classList.add('hidden');
+      };
+
+      document.getElementById('btn-checkout').onclick = () => {
+        document.getElementById('drawer-cart').classList.add('hidden');
+        showToast('데모 결제가 완료되었습니다.');
+      };
+
+      document.getElementById('close-top-banner').onclick = () => document.getElementById('top-banner').classList.add('hidden');
+    });
+  </script>
+</body>
+</html>
