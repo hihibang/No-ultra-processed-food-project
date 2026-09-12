@@ -1,20 +1,10 @@
 import { useEffect } from 'react';
-import styled from 'styled-components';
 import { useViewMode } from '../../hooks/useViewMode';
 import TopBanner from './TopBanner';
 import Header from './Header';
 import Footer from './Footer';
 import Toast from '../Common/Toast';
-
-const LayoutWrapper = styled.div`
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-`;
-
-const MainContent = styled.main`
-  flex: 1;
-`;
+import { LayoutWrapper, MainContent } from './styles/MainContainer.styles';
 
 function MainContainer({ children, onSearch }) {
   const { viewMode } = useViewMode();

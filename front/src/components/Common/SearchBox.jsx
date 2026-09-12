@@ -1,85 +1,14 @@
 import { useState } from 'react';
-import styled from 'styled-components';
-import { flexCenter, flexBetween } from '../../styles/mixins';
-
-const SearchContainer = styled.div`
-  flex: 1;
-  max-width: 580px;
-`;
-
-const SearchBoxWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  border: 2px solid ${({ theme }) => theme.colors.primary};
-  border-radius: ${({ theme }) => theme.borderRadius.full};
-  padding: 0.25rem 0.5rem 0.25rem 1rem;
-  background-color: ${({ theme }) => theme.colors.white};
-`;
-
-const SearchInput = styled.input`
-  width: 100%;
-  border: none;
-  outline: none;
-  font-size: ${({ theme }) => theme.typography.fontSize.base};
-  color: ${({ theme }) => theme.colors.textMain};
-  background: transparent;
-
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.textMuted};
-  }
-`;
-
-const SearchButton = styled.button`
-  ${flexCenter}
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.white};
-  border-radius: 50%;
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-  flex-shrink: 0;
-  font-size: 1.1rem;
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.primaryHover};
-  }
-`;
-
-const SearchHints = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.35rem;
-  padding-left: 0.5rem;
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  color: ${({ theme }) => theme.colors.textSub};
-`;
-
-const HintLabel = styled.span`
-  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-  color: ${({ theme }) => theme.colors.primary};
-`;
-
-const HintTag = styled.button`
-  background: none;
-  border: none;
-  color: ${({ theme }) => theme.colors.textSub};
-  cursor: pointer;
-  font-size: inherit;
-  padding: 0;
-  font-family: inherit;
-  transition: color 0.15s ease;
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.primary};
-    text-decoration: underline;
-  }
-`;
+import { getIcon } from '../../constants/icons';
+import {
+  SearchContainer,
+  SearchBoxWrapper,
+  SearchInput,
+  SearchButton,
+  SearchHints,
+  HintLabel,
+  HintTag,
+} from './styles/SearchBox.styles';
 
 function SearchBox({ onSearch, hints = [], placeholder = '검색어를 입력하세요' }) {
   const [searchValue, setSearchValue] = useState('');
@@ -98,8 +27,9 @@ function SearchBox({ onSearch, hints = [], placeholder = '검색어를 입력하
   };
 
   const handleHintClick = (hint) => {
-    setSearchValue(hint);
-    onSearch?.(hint);
+    const cleanHint = hint.replace('#', '');
+    setSearchValue(cleanHint);
+    onSearch?.(cleanHint);
   };
 
   return (
@@ -112,8 +42,9 @@ function SearchBox({ onSearch, hints = [], placeholder = '검색어를 입력하
           onChange={(e) => setSearchValue(e.target.value)}
           onKeyPress={handleKeyPress}
         />
-        <SearchButton onClick={handleSearch}>🔍</SearchButton>
+        <SearchButton onClick={handleSearch}>{getIcon('search')}</SearchButton>
       </SearchBoxWrapper>
+
       {hints.length > 0 && (
         <SearchHints>
           <HintLabel>인기 성분:</HintLabel>

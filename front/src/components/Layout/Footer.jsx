@@ -1,66 +1,14 @@
-import styled from 'styled-components';
-import { containerMax } from '../../styles/mixins';
-
-const FooterWrapper = styled.footer`
-  background-color: ${({ theme }) => theme.colors.bgGray};
-  border-top: 1px solid ${({ theme }) => theme.colors.borderColor};
-  margin-top: 4rem;
-  padding: 3rem 1.5rem 2rem;
-`;
-
-const FooterInner = styled.div`
-  ${containerMax}
-`;
-
-const FooterContent = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2rem;
-`;
-
-const FooterSection = styled.div``;
-
-const FooterTitle = styled.h4`
-  font-size: ${({ theme }) => theme.typography.fontSize.lg};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-  margin-bottom: 1rem;
-  color: ${({ theme }) => theme.colors.textMain};
-`;
-
-const FooterLink = styled.a`
-  display: block;
-  color: ${({ theme }) => theme.colors.textSub};
-  font-size: ${({ theme }) => theme.typography.fontSize.base};
-  margin-bottom: 0.5rem;
-  text-decoration: none;
-  transition: color 0.15s ease;
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
-const FooterBottom = styled.div`
-  border-top: 1px solid ${({ theme }) => theme.colors.borderColor};
-  padding-top: 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-`;
-
-const CompanyInfo = styled.div`
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  color: ${({ theme }) => theme.colors.textMuted};
-`;
-
-const Copyright = styled.p`
-  font-size: ${({ theme }) => theme.typography.fontSize.xs};
-  color: ${({ theme }) => theme.colors.textMuted};
-  margin: 0;
-`;
+import {
+  FooterWrapper,
+  FooterInner,
+  FooterContent,
+  FooterSection,
+  FooterTitle,
+  FooterLink,
+  FooterBottom,
+  CompanyInfo,
+  Copyright,
+} from './styles/Footer.styles';
 
 function Footer() {
   return (
