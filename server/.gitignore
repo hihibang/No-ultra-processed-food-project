@@ -1,2 +1,23 @@
-node_modules
+# 의존성 패키지
+node_modules/
+package-lock.json
+
+# Python 캐시 및 컴파일 파일
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 가상환경
+.venv/
+venv/
+ENV/
+env/
+
+# 환경변수 및 로컬 설정
 .env
+.env.local
+
+# OS 생성 파일
+.DS_Store
+Thumbs.db

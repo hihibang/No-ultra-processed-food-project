@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+aiomysql
+sqlalchemy
+pydantic
+python-dotenv
+greenlet
