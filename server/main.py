@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.food_routes import router as food_router
-from routes.recipe_routes import router as recipe_router
 
 app = FastAPI(
     title="UPF Identifier API",
@@ -20,7 +19,6 @@ app.add_middleware(
 
 # 라우터 등록
 app.include_router(food_router)
-app.include_router(recipe_router)
 
 @app.get("/")
 async def root():

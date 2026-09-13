@@ -27,7 +27,6 @@ function TopBanner({ onCouponClick, onClose }) {
           <BadgeWelcome>WELCOME</BadgeWelcome>
           <TextButton onClick={handleCouponClick}>혜택 받기 →</TextButton>
         </BannerText>
-        <CloseButton onClick={handleClose}>✕</CloseButton>
       </BannerInner>
     </BannerWrapper>
   );
