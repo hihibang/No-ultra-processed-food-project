@@ -9,6 +9,7 @@ import { ViewModeProvider } from './contexts/ViewModeContext';
 import { SearchProvider } from './contexts/SearchContext';
 import HomePage from './pages/HomePage';
 import CatalogPage from './pages/CatalogPage';
+import JournalPage from './pages/JournalPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
                   <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/catalog" element={<CatalogPage />} />
+                    <Route path="/journal" element={<JournalPage />} />
                   </Routes>
                 </Router>
               </SearchProvider>

@@ -4,6 +4,7 @@ import { useViewMode } from '../hooks/useViewMode';
 import MainContainer from '../components/Layout/MainContainer';
 import HeroSection from '../components/Features/HeroSection';
 import CategoriesSection from '../components/Features/CategoriesSection';
+import FoodJournalSection from '../components/Journal/FoodJournalSection';
 import TimeDealSection from '../components/Features/TimeDealSection';
 import BottomFeaturesSection from '../components/Features/BottomFeaturesSection';
 
@@ -41,6 +42,7 @@ function HomePage() {
         onCatalogClick={handleCatalogClick}
       />
       <CategoriesSection onCategoryClick={handleCategoryClick} />
+      <FoodJournalSection />
       <TimeDealSection onViewAll={handleViewAll} />
       <BottomFeaturesSection />
     </MainContainer>
