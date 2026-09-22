@@ -25,7 +25,7 @@ export const FeatureCard = styled.div`
     transform: translateY(-4px);
   }
 
-  background-image: url(${({ bgImage }) => bgImage});
+  background-image: url(${({ $bgImage }) => $bgImage});
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -34,8 +34,8 @@ export const FeatureCard = styled.div`
 export const FeatureOverlay = styled.div`
   position: absolute;
   inset: 0;
-  background: ${({ isGreenTint }) =>
-    isGreenTint
+  background: ${({ $isGreenTint }) =>
+    $isGreenTint
       ? 'linear-gradient(180deg, rgba(6, 78, 59, 0.4) 0%, rgba(6, 78, 59, 0.92) 100%)'
       : 'linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.88) 100%)'};
 `;

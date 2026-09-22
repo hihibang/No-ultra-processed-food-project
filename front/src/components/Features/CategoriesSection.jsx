@@ -4,6 +4,7 @@ import { CATEGORIES } from '../../data/CategoriesSection.data';
 import {
   CategoriesSectionWrapper,
   SectionHeader,
+  SectionLabel,
   CategoriesGrid,
 } from './styles/CategoriesSection.styles';
 
@@ -15,8 +16,8 @@ function CategoriesSection({ onCategoryClick }) {
   return (
     <CategoriesSectionWrapper>
       <SectionHeader>
+        <SectionLabel>🛒 취향 맞춤 탐색</SectionLabel>
         <h2>🏪 카테고리 쇼핑</h2>
-        <p>원하는 카테고리를 선택하세요</p>
       </SectionHeader>
       <CategoriesGrid>
         {CATEGORIES.map(category => (

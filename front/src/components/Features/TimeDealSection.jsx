@@ -3,6 +3,7 @@ import { SAMPLE_DEALS } from '../../data/TimeDealSection.data';
 import {
   TimeDealSectionWrapper,
   SectionHeader,
+  SectionLabel,
   ViewAllButton,
   ProductGrid,
 } from './styles/TimeDealSection.styles';
@@ -12,8 +13,8 @@ function TimeDealSection({ onViewAll }) {
     <TimeDealSectionWrapper>
       <SectionHeader>
         <div>
+          <SectionLabel>🔥 오늘의 특가</SectionLabel>
           <h2>⏰ 타임딜</h2>
-          <p>시간 한정 특가 상품들</p>
         </div>
         <ViewAllButton onClick={onViewAll}>
           전체 보기 →

@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import JournalCard from './JournalCard';
 import JournalDetailModal from './JournalDetailModal';
 import { journalMockData } from '../../data/journalMockData';
-import { SectionContainer, HeaderSection, SectionLabel, MainTitle, ViewAllButton, CardsGrid } from './FoodJournalSection.styles';
+import { SectionContainer, HeaderSection, SectionLabel, ViewAllButton, CardsGrid } from './FoodJournalSection.styles';
 
 function FoodJournalSection() {
   const navigate = useNavigate();
   const [selectedStory, setSelectedStory] = useState(null);
 
-  const latestStories = journalMockData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 3);
+  const latestStories = journalMockData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 4);
 
   const handleViewAll = () => {
     navigate('/journal');
@@ -29,7 +29,7 @@ function FoodJournalSection() {
         <HeaderSection>
           <div>
             <SectionLabel>🌿 푸드 저널 & 스토리</SectionLabel>
-            <MainTitle>건강한 먹거리와 함께하는 일상</MainTitle>
+            <h2>💪 건강한 먹거리와 함께하는 일상</h2>
           </div>
           <ViewAllButton onClick={handleViewAll}>전체 이야기 보기 →</ViewAllButton>
         </HeaderSection>

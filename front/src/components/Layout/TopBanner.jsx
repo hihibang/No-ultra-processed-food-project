@@ -21,7 +21,8 @@ function TopBanner({ onCouponClick, onClose }) {
   };
 
   return (
-    <BannerWrapper isVisible={isVisible}>
+    // $를 붙여 실제 DOM(HTML div)으로 prop이 전달되지 않도록 방지
+    <BannerWrapper $isVisible={isVisible}>
       <BannerInner>
         <BannerText>
           <BadgeWelcome>WELCOME</BadgeWelcome>

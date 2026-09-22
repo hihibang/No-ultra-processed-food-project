@@ -27,7 +27,7 @@ export const journalMockData = [
     title: '소금, 얼마만큼이 적당할까?',
     summary: '우리가 모르는 소금의 진실과 저염 식단이 가져다주는 건강한 변화를 함께 알아봅니다.',
     category: '성분 탐구',
-    thumbnail: 'https://images.unsplash.com/photo-1599599810694-b5ac4dd93e12?w=500&h=300&fit=crop',
+    thumbnail: '', // 깨진 주소 제거
     readTime: '4분 읽기',
     content: `세계보건기구(WHO)는 하루 소금 섭취량을 5g(약 2,000mg 나트륨) 이하로 권고하고 있습니다. 하지만 대부분의 사람들은 이보다 2배 이상을 섭취하고 있어요.
 

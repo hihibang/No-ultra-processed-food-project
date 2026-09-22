@@ -6,7 +6,7 @@ export const BannerWrapper = styled.div`
   color: ${({ theme }) => theme.colors.white};
   font-size: ${({ theme }) => theme.typography.fontSize.xs};
   padding: 0.4rem 1rem;
-  display: ${({ isVisible }) => (isVisible ? 'block' : 'none')};
+  display: ${({ $isVisible }) => ($isVisible ? 'block' : 'none')};
 `;
 
 export const BannerInner = styled.div`

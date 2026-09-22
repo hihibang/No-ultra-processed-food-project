@@ -17,11 +17,11 @@ function BottomFeaturesSection() {
         {FEATURES.map(feature => (
           <FeatureCard
             key={feature.id}
-            bgImage={feature.bgImage}
+            $bgImage={feature.bgImage}
             role="button"
             tabIndex={0}
           >
-            <FeatureOverlay isGreenTint={feature.isGreenTint} />
+            <FeatureOverlay $isGreenTint={feature.isGreenTint} />
             <FeatureCardContent>
               <FeatureTag>{feature.tag}</FeatureTag>
               <FeatureTitle>{feature.title}</FeatureTitle>

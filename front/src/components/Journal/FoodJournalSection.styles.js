@@ -1,72 +1,70 @@
 import styled from 'styled-components';
+import { containerMax } from '../../styles/mixins';
 
 export const SectionContainer = styled.section`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 60px 20px;
+  ${containerMax}
+  width: 100%;
+  padding: 40px 1.5rem 24px;
+  box-sizing: border-box;
 `;
 
 export const HeaderSection = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 48px;
-  gap: 24px;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  width: 100%;
 
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
+  h2 {
+    font-size: 1.75rem;
+    font-weight: ${({ theme }) => theme.typography.fontWeight.heavy};
+    color: ${({ theme }) => theme.colors.textMain};
+    margin-bottom: 0.5rem;
   }
 `;
 
-export const SectionLabel = styled.div`
-  font-size: 14px;
-  color: #888;
-  font-weight: 500;
-  margin-bottom: 12px;
-  letter-spacing: 0.5px;
-`;
-
-export const MainTitle = styled.h2`
-  margin: 0;
-  font-size: 36px;
+export const SectionLabel = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
   font-weight: 700;
-  color: #1f2937;
-  line-height: 1.3;
-  max-width: 500px;
+  color: #10b981;
+  background-color: #ecfdf5;
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
 `;
 
 export const ViewAllButton = styled.button`
   background: none;
-  color: #15803d;
   border: none;
   padding: 0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
+  color: #64748b;
   cursor: pointer;
-  transition: color 0.3s ease;
-  white-space: nowrap;
-  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.15s ease;
 
   &:hover {
-    color: #166534;
-  }
-
-  @media (max-width: 768px) {
-    margin-top: 16px;
+    color: #0f172a;
   }
 `;
 
 export const CardsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  width: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.5rem;
 
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(2, 1fr);
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
 `;

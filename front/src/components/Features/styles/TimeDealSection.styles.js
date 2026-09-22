@@ -18,11 +18,20 @@ export const SectionHeader = styled.div`
     color: ${({ theme }) => theme.colors.textMain};
     margin-bottom: 0.5rem;
   }
+`;
 
-  div p {
-    font-size: ${({ theme }) => theme.typography.fontSize.lg};
-    color: ${({ theme }) => theme.colors.textSub};
-  }
+/* 푸드 저널과 동일한 초록색 라벨 배지 */
+export const SectionLabel = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #10b981;
+  background-color: #ecfdf5;
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
 `;
 
 export const ViewAllButton = styled.button`
