@@ -10,37 +10,38 @@ export const Header = styled.div`
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
 `;
 
 export const BackButton = styled.button`
   background: none;
   border: none;
   font-size: 16px;
-  color: #15803d;
+  color: #888;
   cursor: pointer;
   padding: 0;
-  font-weight: 600;
+  font-weight: 500;
+  transition: color 0.3s ease;
 
   &:hover {
-    color: #166534;
+    color: #15803d;
   }
 `;
 
 export const Title = styled.h1`
   margin: 0;
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
   color: #1f2937;
 `;
 
 export const SearchSection = styled.div`
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 `;
 
 export const SearchInput = styled.input`
   width: 100%;
-  padding: 12px 16px;
+  padding: 14px 16px;
   font-size: 14px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -52,14 +53,14 @@ export const SearchInput = styled.input`
   }
 
   &::placeholder {
-    color: #ccc;
+    color: #bbb;
   }
 `;
 
 export const FilterSection = styled.div`
   display: flex;
   gap: 12px;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
   overflow-x: auto;
   padding-bottom: 8px;
 
@@ -78,19 +79,20 @@ export const FilterSection = styled.div`
 `;
 
 export const FilterTab = styled.button`
-  background: ${(props) => (props.isActive ? '#15803d' : '#f3f4f6')};
-  color: ${(props) => (props.isActive ? 'white' : '#666')};
-  border: none;
+  background: ${(props) => (props.isActive ? '#15803d' : 'transparent')};
+  color: ${(props) => (props.isActive ? 'white' : '#888')};
+  border: 1px solid ${(props) => (props.isActive ? '#15803d' : '#e5e7eb')};
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.3s ease;
 
   &:hover {
-    background: ${(props) => (props.isActive ? '#166534' : '#e5e7eb')};
+    border-color: #15803d;
+    color: #15803d;
   }
 `;
 
@@ -110,7 +112,7 @@ export const CardsGrid = styled.div`
 
 export const EmptyMessage = styled.div`
   text-align: center;
-  padding: 60px 20px;
+  padding: 80px 20px;
   font-size: 16px;
   color: #999;
 `;

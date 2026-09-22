@@ -7,9 +7,10 @@ export const CardContainer = styled.div`
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
-    transform: translateY(-4px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
   }
 `;
@@ -17,9 +18,10 @@ export const CardContainer = styled.div`
 export const ImageWrapper = styled.div`
   position: relative;
   width: 100%;
-  padding-top: 66.67%;
+  padding-top: 75%;
   overflow: hidden;
   background: #f0f0f0;
+  flex-shrink: 0;
 
   img {
     position: absolute;
@@ -33,48 +35,36 @@ export const ImageWrapper = styled.div`
 
 export const CategoryTag = styled.span`
   position: absolute;
-  top: 12px;
-  left: 12px;
-  background: #dcfce7;
-  color: #15803d;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
+  top: 16px;
+  left: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 600;
   z-index: 1;
 `;
 
-export const ReadTime = styled.span`
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #666;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  z-index: 1;
-`;
-
 export const Content = styled.div`
-  padding: 16px;
+  padding: 20px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  flex: 1;
+`;
+
+export const ReadTime = styled.span`
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
 `;
 
 export const Title = styled.h3`
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #1f2937;
-  line-height: 1.4;
-`;
-
-export const Summary = styled.p`
-  margin: 0;
-  font-size: 14px;
-  color: #666;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -82,19 +72,23 @@ export const Summary = styled.p`
   overflow: hidden;
 `;
 
-export const ProductChips = styled.div`
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 8px;
+export const Summary = styled.p`
+  margin: 0;
+  font-size: 13px;
+  color: #888;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
-export const ProductChip = styled.span`
-  background: #f3f4f6;
-  color: #666;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
+export const ProductInfo = styled.div`
+  font-size: 12px;
+  color: #999;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

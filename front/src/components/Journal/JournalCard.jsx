@@ -1,4 +1,4 @@
-import { CardContainer, ImageWrapper, CategoryTag, ReadTime, Content, Title, Summary, ProductChips, ProductChip } from './JournalCard.styles';
+import { CardContainer, ImageWrapper, CategoryTag, Content, ReadTime, Title, Summary, ProductInfo } from './JournalCard.styles';
 
 function JournalCard({ data, onClick }) {
   return (
@@ -6,17 +6,15 @@ function JournalCard({ data, onClick }) {
       <ImageWrapper>
         <img src={data.thumbnail} alt={data.title} />
         <CategoryTag>{data.category}</CategoryTag>
-        <ReadTime>{data.readTime}</ReadTime>
       </ImageWrapper>
       <Content>
+        <ReadTime>{data.readTime}</ReadTime>
         <Title>{data.title}</Title>
         <Summary>{data.summary}</Summary>
         {data.relatedProducts && data.relatedProducts.length > 0 && (
-          <ProductChips>
-            {data.relatedProducts.slice(0, 2).map((product) => (
-              <ProductChip key={product.id}>{product.name}</ProductChip>
-            ))}
-          </ProductChips>
+          <ProductInfo>
+            관련 제품 {data.relatedProducts[0].name}
+          </ProductInfo>
         )}
       </Content>
     </CardContainer>

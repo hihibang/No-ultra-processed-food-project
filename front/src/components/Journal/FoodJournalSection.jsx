@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import JournalCard from './JournalCard';
 import JournalDetailModal from './JournalDetailModal';
 import { journalMockData } from '../../data/journalMockData';
-import { SectionContainer, Header, Title, ViewAllButton, CardsGrid } from './FoodJournalSection.styles';
+import { SectionContainer, HeaderSection, SectionLabel, MainTitle, ViewAllButton, CardsGrid } from './FoodJournalSection.styles';
 
 function FoodJournalSection() {
   const navigate = useNavigate();
@@ -26,10 +26,13 @@ function FoodJournalSection() {
   return (
     <>
       <SectionContainer>
-        <Header>
-          <Title>푸드 저널 & 식단 이야기</Title>
+        <HeaderSection>
+          <div>
+            <SectionLabel>🌿 푸드 저널 & 스토리</SectionLabel>
+            <MainTitle>건강한 먹거리와 함께하는 일상</MainTitle>
+          </div>
           <ViewAllButton onClick={handleViewAll}>전체 이야기 보기 →</ViewAllButton>
-        </Header>
+        </HeaderSection>
         <CardsGrid>
           {latestStories.map((story) => (
             <JournalCard key={story.id} data={story} onClick={() => handleCardClick(story)} />
