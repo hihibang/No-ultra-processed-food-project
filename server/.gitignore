@@ -1,5 +1,6 @@
 # 의존성 패키지
 node_modules/
+npm-debug.log*
 package-lock.json
 
 # Python 캐시 및 컴파일 파일
@@ -21,3 +22,4 @@ env/
 # OS 생성 파일
 .DS_Store
 Thumbs.db
+EOF
