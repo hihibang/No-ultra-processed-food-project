@@ -4,16 +4,27 @@ import re
 
 # 현재 실행 위치(ai 폴더) 기준
 current_dir = os.path.dirname(os.path.abspath(__file__))
-jsonl_path = os.path.join(current_dir, "recipe_train.jsonl")
-docs_dir = os.path.join(current_dir, "recipe_docs")
+
+# 1. data 폴더 경로 지정 및 자동 생성
+data_dir = os.path.join(current_dir, "data")
+os.makedirs(data_dir, exist_ok=True)
+
+# 2. data/recipe_docs 폴더 경로 지정 및 생성
+docs_dir = os.path.join(data_dir, "recipe_docs")
 os.makedirs(docs_dir, exist_ok=True)
+
+# jsonl 파일 경로 (현재 폴더에 있거나 data 폴더 안에 있는 경우 모두 대비)
+jsonl_path = os.path.join(current_dir, "recipe_train.jsonl")
+if not os.path.exists(jsonl_path):
+    # data 폴더 안에 들어있는 경우 체크
+    jsonl_path = os.path.join(data_dir, "recipe_train.jsonl")
 
 def sanitize_filename(name):
     return re.sub(r'[\/*?:"<>| ]', '_', str(name))
 
 def main():
     if not os.path.exists(jsonl_path):
-        print(f"오류: {jsonl_path} 파일을 찾을 수 없습니다.")
+        print(f"오류: {jsonl_path} 파일을 찾을 수 없습니다. (recipe_train.jsonl 위치를 확인하세요)")
         return
 
     count = 0
