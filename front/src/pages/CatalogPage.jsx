@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import MainContainer from '../components/Layout/MainContainer';
 import ProductCard from '../components/Common/ProductCard';
 import FilterSidebar from '../components/Common/FilterSidebar';
 import { useToast } from '../hooks/useToast';
-import { CATEGORY_OPTIONS, SAMPLE_PRODUCTS } from '../data/CatalogPage.data';
+import { CATEGORY_OPTIONS } from '../data/CatalogPage.data';
 import {
   NOVA_GRADES,
   NUTRITION_FILTERS,
@@ -11,7 +11,6 @@ import {
 } from '../data/FilterSidebar.data';
 import {
   CatalogWrapper,
-  CatalogHeader,
   CatalogLayout,
   MainContent,
   CatalogActionBar,
@@ -26,6 +25,8 @@ import {
 } from './styles/CatalogPage.styles';
 
 function CatalogPage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('전체');
   const [filterState, setFilterState] = useState({
     novaGrades: [],
@@ -35,8 +36,38 @@ function CatalogPage() {
   const [sortOption, setSortOption] = useState('popular');
   const { showToast } = useToast();
 
+  // 1. 백엔드 API에서 식품 목록 불러오기 (Swagger GET /api/foods/search?q= 연동)
+  const fetchFoods = async (query = '') => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/foods/search?q=${encodeURIComponent(query)}`
+      );
+
+      if (!response.ok) {
+        throw new Error('데이터를 불러오는데 실패했습니다.');
+      }
+
+      const result = await response.json();
+      // API 응답 객체 구조: { count: number, data: [...] }
+      setProducts(result.data || []);
+    } catch (error) {
+      console.error('API Fetch Error:', error);
+      showToast('식품 목록을 불러오는 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 마운트 시 초기 전체 데이터 연동
+  useEffect(() => {
+    fetchFoods('');
+  }, []);
+
+  // 검색어 입력 핸들러
   const handleSearch = (searchQuery) => {
-    showToast(`'${searchQuery}'에 대한 검색 결과입니다.`, 'success', 2000);
+    fetchFoods(searchQuery);
+    showToast(`'${searchQuery}' 검색 결과입니다.`, 'success', 2000);
   };
 
   const handleCategorySelect = (category) => {
@@ -52,7 +83,6 @@ function CatalogPage() {
   const activeChips = useMemo(() => {
     const chips = [];
 
-    // 1. 카테고리: '전체'를 포함하여 현재 선택된 카테고리를 항상 첫 번째 칩으로 유지
     if (activeCategory) {
       chips.push({
         type: 'category',
@@ -61,7 +91,6 @@ function CatalogPage() {
       });
     }
 
-    // 2. NOVA 가공 등급
     filterState.novaGrades.forEach((gradeId) => {
       const item = NOVA_GRADES.find((g) => g.id === gradeId);
       if (item) {
@@ -74,7 +103,6 @@ function CatalogPage() {
       }
     });
 
-    // 3. 영양성분 필터
     filterState.nutritionFilters.forEach((nutId) => {
       const item = NUTRITION_FILTERS.find((n) => n.id === nutId);
       if (item) {
@@ -86,7 +114,6 @@ function CatalogPage() {
       }
     });
 
-    // 4. 제외 첨가물 필터
     filterState.excludedAdditives.forEach((addId) => {
       const item = EXCLUDED_ADDITIVES.find((a) => a.id === addId);
       if (item) {
@@ -101,7 +128,7 @@ function CatalogPage() {
     return chips;
   }, [activeCategory, filterState]);
 
-  // 상단 칩 개별 삭제 (✕ 클릭)
+  // 상단 칩 개별 삭제
   const handleRemoveChip = (chip) => {
     if (chip.type === 'category') {
       setActiveCategory('전체');
@@ -123,7 +150,7 @@ function CatalogPage() {
     }
   };
 
-  // '초기화 ↺' 클릭 시 모든 필터 및 카테고리 완전 리셋
+  // 초기화 ↺
   const handleResetAll = () => {
     setActiveCategory('전체');
     setFilterState({
@@ -133,7 +160,6 @@ function CatalogPage() {
     });
   };
 
-  // 세부 조건(NOVA, 영양성분, 첨가물)이 하나라도 선택되었는지 확인
   const hasDetailFilters =
     filterState.novaGrades.length > 0 ||
     filterState.nutritionFilters.length > 0 ||
@@ -142,11 +168,6 @@ function CatalogPage() {
   return (
     <MainContainer onSearch={handleSearch}>
       <CatalogWrapper>
-        <CatalogHeader>
-          <h1>전체 상품 카탈로그</h1>
-          <p>당신의 건강을 위한 모든 식품들</p>
-        </CatalogHeader>
-
         <CatalogLayout>
           {/* 좌측 필터 사이드바 */}
           <FilterSidebar
@@ -161,13 +182,9 @@ function CatalogPage() {
           <MainContent>
             <CatalogActionBar>
               <ActiveChipsWrapper>
-                {/* 카테고리가 '전체'이고 세부 필터도 없을 때는 ✕ 없는 단독 [전체] 버튼 */}
                 {activeCategory === '전체' && !hasDetailFilters ? (
-                  <FilterChip $active={true}>
-                    전체
-                  </FilterChip>
+                  <FilterChip $active={true}>전체</FilterChip>
                 ) : (
-                  /* 세부 필터가 있거나 특정 카테고리가 선택되면 '전체' 칩을 포함하여 나란히 표시 */
                   <>
                     {activeChips.map((chip) => (
                       <FilterChip
@@ -188,7 +205,7 @@ function CatalogPage() {
 
               <SortAndCountWrapper>
                 <ProductCount>
-                  전체 <strong>{SAMPLE_PRODUCTS.length}</strong>개 식품
+                  전체 <strong>{products.length}</strong>개 식품
                 </ProductCount>
                 <SortSelectWrapper>
                   <select
@@ -204,11 +221,34 @@ function CatalogPage() {
               </SortAndCountWrapper>
             </CatalogActionBar>
 
-            {/* 6열 그리드 상품 목록 */}
+            {/* 6열 그리드 상품 목록 (DB 연동 및 Data Mapping) */}
             <ProductGrid>
-              {SAMPLE_PRODUCTS.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+              {loading ? (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 0' }}>
+                  식품 데이터를 불러오는 중입니다...
+                </div>
+              ) : products.length === 0 ? (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 0' }}>
+                  조건에 맞는 식품이 없습니다.
+                </div>
+              ) : (
+                products.map((item) => (
+                  <ProductCard
+                    key={item.reportNo}
+                    product={{
+                      id: item.reportNo,
+                      name: item.productName,
+                      company: item.companyName,
+                      category: item.foodCategory,
+                      calories: item.calories,
+                      novaGrade: item.novaGroup,
+                      statusText: item.statusText,
+                      badgeColor: item.badgeColor,
+                      isUPF: item.isUPF,
+                    }}
+                  />
+                ))
+              )}
             </ProductGrid>
           </MainContent>
         </CatalogLayout>

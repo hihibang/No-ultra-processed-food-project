@@ -1,3 +1,4 @@
+import React from 'react';
 import { useCart } from '../../hooks/useCart';
 import { useToast } from '../../hooks/useToast';
 import { getIcon } from '../../constants/icons';
@@ -18,79 +19,103 @@ import {
   Rating,
 } from './styles/ProductCard.styles';
 
-function ProductCard({ product }) {
+// DB product_type(세부유형)을 기반으로 UI 대분류 카테고리를 찾아주는 헬퍼 함수
+const getMainCategory = (subType) => {
+  if (!subType) return '';
+  if (['빵류'].includes(subType)) return '베이커리';
+  if (['음료베이스', '액상차', '커피', '혼합음료', '과.채주스', '과.채음료', '탄산음료'].includes(subType)) return '음료/티';
+  if (['초콜릿', '초콜릿가공품', '빙과', '과자', '캔디류'].includes(subType)) return '디저트/스낵';
+  if (['어묵', '식육함유가공품'].includes(subType)) return '신선식품';
+  if (['즉석조리식품', '즉석섭취식품', '간편조리세트', '만두', '숙면', '유탕면'].includes(subType)) return '간편식';
+  if (['소스', '복합조미식품'].includes(subType)) return '소스/양념';
+  return '';
+};
+
+function ProductCard({ product, onClick }) {
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const { showToast } = useToast();
 
-  const inWishlist = isInWishlist(product.id);
+  // 1. product 객체가 없을 때 안전 리턴
+  if (!product) return null;
 
-  const handleAddToCart = () => {
-    addToCart(product);
-    showToast(`${product.name}이(가) 장바구니에 추가되었습니다.`, 'success');
+  // 2. 데이터 전체 방어 파싱 (백엔드 / 프론트 필드명 상호 호환)
+  const id = product.id ?? product.reportNo ?? '';
+  const name = product.name ?? product.productName ?? '상품명 정보 없음';
+  const brand = product.company ?? product.companyName ?? product.brand ?? '';
+  const category = product.category ?? product.foodCategory ?? '';
+  const price = product.price ?? 0;
+  const originalPrice = product.originalPrice ?? null;
+  const image = product.image ?? product.imageUrl ?? '/images/div.relative.png';
+  const novaGrade = product.novaGrade ?? product.novaGroup ?? null;
+  const statusText = product.statusText ?? '';
+  const rating = product.rating ?? null;
+
+  // 3. 대분류와 세부유형 각각 추출
+  const mainCategory = getMainCategory(category);
+
+  const inWishlist = isInWishlist(id);
+
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    addToCart({ ...product, id, name, price });
+    showToast(`${name}이(가) 장바구니에 추가되었습니다.`, 'success');
   };
 
-  const handleToggleWishlist = () => {
-    toggleWishlist(product);
+  const handleToggleWishlist = (e) => {
+    e.stopPropagation();
+    toggleWishlist({ ...product, id, name });
     showToast(
       inWishlist
-        ? `${product.name}이(가) 위시리스트에서 제거되었습니다.`
-        : `${product.name}이(가) 위시리스트에 추가되었습니다.`,
+        ? `${name}이(가) 위시리스트에서 제거되었습니다.`
+        : `${name}이(가) 위시리스트에 추가되었습니다.`,
       'success'
     );
   };
 
   return (
-    <CardWrapper>
+    <CardWrapper onClick={onClick}>
       <ImageWrapper>
-        <img src={product.image || '/images/div.relative.png'} alt={product.name} />
-        {product.badge && <Badge>{product.badge}</Badge>}
+        <img src={image} alt={name} />
 
-        <WishlistButton
-          onClick={handleToggleWishlist}
-          $isWished={inWishlist}
-          aria-label="위시리스트 담기"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill={inWishlist ? 'currentColor' : 'none'}
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-          </svg>
+        {/* NOVA 등급 / 대표 뱃지 */}
+        {novaGrade ? (
+          <Badge>
+            NOVA {novaGrade} {statusText && `· ${statusText}`}
+          </Badge>
+        ) : product.badge ? (
+          <Badge>{product.badge}</Badge>
+        ) : null}
+
+        {/* 위시리스트 & 장바구니 버튼 */}
+        <WishlistButton onClick={handleToggleWishlist} $isWished={inWishlist}>
+          {getIcon('heart')}
         </WishlistButton>
-
-        <CartButton onClick={handleAddToCart} aria-label="장바구니 담기">
+        <CartButton onClick={handleAddToCart}>
           {getIcon('shoppingBag')}
         </CartButton>
       </ImageWrapper>
 
       <CardInfo>
-        {product.ingredients && product.ingredients.length > 0 && (
-          <IngredientTags>
-            {product.ingredients.map((ing, idx) => (
-              <IngredientTag key={idx}>{ing}</IngredientTag>
-            ))}
-          </IngredientTags>
-        )}
-
         <div>
-          <ProductName>{product.name}</ProductName>
-          {product.brand && <ProductSub>{product.brand}</ProductSub>}
+          {/* 초록색 태그 칸 각각 독립적으로 분리 렌더링 */}
+          <IngredientTags>
+            {mainCategory && <IngredientTag>{mainCategory}</IngredientTag>}
+            {category && <IngredientTag>{category}</IngredientTag>}
+            {product.isUPF === false && <IngredientTag>#NOVA_CLEAN</IngredientTag>}
+          </IngredientTags>
+
+          <ProductName>{name}</ProductName>
+          {brand && <ProductSub>{brand}</ProductSub>}
         </div>
 
         <PriceRow>
           <div>
-            {product.originalPrice && (
-              <OriginalPrice>{product.originalPrice.toLocaleString()}원</OriginalPrice>
+            {originalPrice && (
+              <OriginalPrice>{originalPrice.toLocaleString()}원</OriginalPrice>
             )}
-            <div>
-              <CurrentPrice>{product.price.toLocaleString()}원</CurrentPrice>
-            </div>
+            <CurrentPrice>{price.toLocaleString()}원</CurrentPrice>
           </div>
-          {product.rating && <Rating>⭐ {product.rating}</Rating>}
+          {rating && <Rating>⭐ {rating}</Rating>}
         </PriceRow>
       </CardInfo>
     </CardWrapper>

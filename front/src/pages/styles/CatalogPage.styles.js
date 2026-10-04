@@ -8,23 +8,6 @@ export const CatalogWrapper = styled.div`
   box-sizing: border-box;
 `;
 
-export const CatalogHeader = styled.header`
-  margin-bottom: 1.5rem;
-
-  h1 {
-    font-size: 1.6rem;
-    font-weight: 800;
-    color: ${({ theme }) => theme.colors?.textMain || '#0f172a'};
-    margin: 0 0 0.35rem 0;
-  }
-
-  p {
-    font-size: 0.9rem;
-    color: ${({ theme }) => theme.colors?.textSub || '#64748b'};
-    margin: 0;
-  }
-`;
-
 export const CatalogLayout = styled.div`
   display: flex;
   gap: 1.5rem;

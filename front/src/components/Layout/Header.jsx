@@ -15,7 +15,6 @@ import {
   BrandButton,
   LogoSymbol,
   LogoTitle,
-  AIBadge,
   HeaderActions,
   ViewSwitchPill,
   SwitchButton,
@@ -63,10 +62,14 @@ function Header({ onSearch }) {
       <HeaderInner>
         <BrandGroup>
           <BrandButton onClick={handleBrandClick}>
-            <LogoSymbol>O</LogoSymbol>
-            <LogoTitle>서비스 제목</LogoTitle>
+            <LogoSymbol>{getIcon('utensilsCrossed')}</LogoSymbol>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <LogoTitle>PingPong</LogoTitle>
+              <div style={{ fontSize: '12px', fontWeight: '500', color: '#666' }}>
+                여러 번의 클릭에서 단 한 번의 선택을 찾다
+              </div>
+            </div>
           </BrandButton>
-          <AIBadge>AI</AIBadge>
         </BrandGroup>
 
         <SearchBox
@@ -125,7 +128,7 @@ function Header({ onSearch }) {
           </CartButton>
 
           <WishlistButton onClick={() => navigate('/wishlist')}>
-            <span>♡</span>
+            <span>{getIcon('heart')}</span>
             {wishlistCount > 0 && (
               <CounterBadge isRed>{wishlistCount}</CounterBadge>
             )}

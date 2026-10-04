@@ -246,6 +246,41 @@ export const ICON_MAP = {
       <circle cx="8" cy="20" r="2" />
     </svg>
   ),
+
+  utensilsCrossed: (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="lucide lucide-utensils-crossed"
+    >
+      <path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.24l1.175 1.175a1 1 0 0 1-.707 1.707H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h10.168a1 1 0 0 1 .707 1.707L11.76 17.7a3 3 0 0 0 0 4.243L14 22" />
+      <path d="M14.5 3.5a3 3 0 0 1 4.243 0l2.121-2.12a1 1 0 1 1 1.414 1.414l-2.12 2.121a3 3 0 0 1 0 4.243l2.829 2.829" />
+    </svg>
+  ),
+
+  heart: (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="lucide lucide-heart"
+    >
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  ),
 };
 
 export const getIcon = (iconKey) => ICON_MAP[iconKey] || null;

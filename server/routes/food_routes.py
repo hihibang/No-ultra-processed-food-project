@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
@@ -9,10 +10,20 @@ router = APIRouter(prefix="/api/foods", tags=["Foods"])
 
 @router.get("/search", response_model=FoodSearchResponse)
 async def search_foods(
-    q: str = Query(..., min_length=1, description="검색어"),
+    q: Optional[str] = Query(None, description="검색어 (빈 값일 경우 전체 목록 조회)"),
     db: AsyncSession = Depends(get_db)
 ):
-    rows = await FoodModel.search_foods(db, q.strip())
+    # 검색어가 유효한 경우 공백 제거, 없거나 빈 문자열이면 None 처리
+    search_keyword = q.strip() if q and q.strip() else None
+
+    # 검색어가 있으면 검색, 없으면 전체 목록 조회
+    if search_keyword:
+        rows = await FoodModel.search_foods(db, search_keyword)
+    else:
+        # FoodModel에 전체 목록 조회 메서드가 선언되어 있다고 가정
+        # (없으시다면 FoodModel.get_all_foods(db) 형태로 추가해주시면 됩니다)
+        rows = await FoodModel.get_all_foods(db) if hasattr(FoodModel, 'get_all_foods') else await FoodModel.search_foods(db, "")
+
     results = []
     for food in rows:
         upf = classify_food(food)
