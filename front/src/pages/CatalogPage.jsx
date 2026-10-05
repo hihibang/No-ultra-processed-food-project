@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import MainContainer from '../components/Layout/MainContainer';
 import ProductCard from '../components/Common/ProductCard';
 import FilterSidebar from '../components/Common/FilterSidebar';
@@ -27,6 +27,7 @@ import {
 function CatalogPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('전체');
   const [filterState, setFilterState] = useState({
     novaGrades: [],
@@ -36,12 +37,39 @@ function CatalogPage() {
   const [sortOption, setSortOption] = useState('popular');
   const { showToast } = useToast();
 
-  // 1. 백엔드 API에서 식품 목록 불러오기 (Swagger GET /api/foods/search?q= 연동)
-  const fetchFoods = async (query = '') => {
+  // 1. 카테고리 & 검색어 & 필터 상태를 통합하여 백엔드 API 호출
+  // CatalogPage.jsx 내 fetchFoods 함수 부분
+  // CatalogPage.jsx 내 fetchFoods 함수 수정
+
+const fetchFoods = useCallback(
+  async (
+    query = searchQuery,
+    category = activeCategory,
+    filters = filterState
+  ) => {
     setLoading(true);
     try {
+      const params = new URLSearchParams();
+
+      if (query && query.trim()) {
+        params.append('q', query.trim());
+      }
+
+      if (category && category !== '전체') {
+        params.append('category', category);
+      }
+
+      // NOVA 등급 다중 선택(중복 선택) 처리 (예: ?nova_grades=2&nova_grades=3&nova_grades=4)
+      if (filters?.novaGrades && filters.novaGrades.length > 0) {
+        filters.novaGrades.forEach((grade) => {
+          params.append('nova_grades', grade);
+        });
+      }
+
+      params.append('limit', '1000');
+
       const response = await fetch(
-        `http://127.0.0.1:8000/api/foods/search?q=${encodeURIComponent(query)}`
+        `http://127.0.0.1:8000/api/foods/search?${params.toString()}`
       );
 
       if (!response.ok) {
@@ -49,7 +77,6 @@ function CatalogPage() {
       }
 
       const result = await response.json();
-      // API 응답 객체 구조: { count: number, data: [...] }
       setProducts(result.data || []);
     } catch (error) {
       console.error('API Fetch Error:', error);
@@ -57,24 +84,31 @@ function CatalogPage() {
     } finally {
       setLoading(false);
     }
-  };
+  },
+  [searchQuery, activeCategory, filterState, showToast]
+);
 
-  // 마운트 시 초기 전체 데이터 연동
+  // 카테고리 또는 필터 상태가 변경될 때마다 자동 재호출
   useEffect(() => {
-    fetchFoods('');
-  }, []);
+    fetchFoods(searchQuery, activeCategory, filterState);
+  }, [activeCategory, filterState]);
 
   // 검색어 입력 핸들러
-  const handleSearch = (searchQuery) => {
-    fetchFoods(searchQuery);
-    showToast(`'${searchQuery}' 검색 결과입니다.`, 'success', 2000);
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    fetchFoods(query, activeCategory, filterState);
+    if (query) {
+      showToast(`'${query}' 검색 결과입니다.`, 'success', 2000);
+    }
   };
 
+  // 카테고리 선택 핸들러
   const handleCategorySelect = (category) => {
     setActiveCategory(category);
     showToast(`'${category}' 카테고리를 선택했습니다.`, 'success', 1500);
   };
 
+  // 상세 필터 변경 핸들러
   const handleFilterChange = (updatedFilters) => {
     setFilterState(updatedFilters);
   };
@@ -83,7 +117,7 @@ function CatalogPage() {
   const activeChips = useMemo(() => {
     const chips = [];
 
-    if (activeCategory) {
+    if (activeCategory && activeCategory !== '전체') {
       chips.push({
         type: 'category',
         id: activeCategory,
@@ -153,6 +187,7 @@ function CatalogPage() {
   // 초기화 ↺
   const handleResetAll = () => {
     setActiveCategory('전체');
+    setSearchQuery('');
     setFilterState({
       novaGrades: [],
       nutritionFilters: [],
@@ -161,6 +196,7 @@ function CatalogPage() {
   };
 
   const hasDetailFilters =
+    activeCategory !== '전체' ||
     filterState.novaGrades.length > 0 ||
     filterState.nutritionFilters.length > 0 ||
     filterState.excludedAdditives.length > 0;
@@ -182,7 +218,7 @@ function CatalogPage() {
           <MainContent>
             <CatalogActionBar>
               <ActiveChipsWrapper>
-                {activeCategory === '전체' && !hasDetailFilters ? (
+                {!hasDetailFilters ? (
                   <FilterChip $active={true}>전체</FilterChip>
                 ) : (
                   <>
@@ -198,7 +234,9 @@ function CatalogPage() {
                       </FilterChip>
                     ))}
 
-                    <ClearAllButton onClick={handleResetAll}>초기화 ↺</ClearAllButton>
+                    <ClearAllButton onClick={handleResetAll}>
+                      초기화 ↺
+                    </ClearAllButton>
                   </>
                 )}
               </ActiveChipsWrapper>
@@ -221,14 +259,26 @@ function CatalogPage() {
               </SortAndCountWrapper>
             </CatalogActionBar>
 
-            {/* 6열 그리드 상품 목록 (DB 연동 및 Data Mapping) */}
+            {/* 6열 그리드 상품 목록 */}
             <ProductGrid>
               {loading ? (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 0' }}>
+                <div
+                  style={{
+                    gridColumn: '1 / -1',
+                    textAlign: 'center',
+                    padding: '40px 0',
+                  }}
+                >
                   식품 데이터를 불러오는 중입니다...
                 </div>
               ) : products.length === 0 ? (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 0' }}>
+                <div
+                  style={{
+                    gridColumn: '1 / -1',
+                    textAlign: 'center',
+                    padding: '40px 0',
+                  }}
+                >
                   조건에 맞는 식품이 없습니다.
                 </div>
               ) : (

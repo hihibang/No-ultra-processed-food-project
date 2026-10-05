@@ -1,50 +1,58 @@
+// src/data/FilterSidebar.data.js
+
+// 1. 사이드바 체크박스용 NOVA 등급 목록 (1번 연한 초록, 2번 진한 초록)
+export const NOVA_GRADES = [
+  { id: 1, label: 'NOVA 1 (자연/최소 가공)', color: '#34D399' }, // 연한 초록
+  { id: 2, label: 'NOVA 2 (가공 식재료)', color: '#059669' },    // 진한 초록
+  { id: 3, label: 'NOVA 3 (가공식품)', color: '#F97316' },        // 주황
+  { id: 4, label: 'NOVA 4 (초가공식품)', color: '#EF4444' },     // 빨강
+];
+
+// 2. NOVA 가공 등급 안내 팝오버(도움말) 데이터
 export const NOVA_INFO = {
-    title: 'NOVA 식품 분류 체계란?',
-    description: `브라질 상파울루 대학에서 개발한 가공 정도에 따른
-4단계 국제 공인 식품 분류 기준입니다.`,
-    grades: [
-        {
-            level: '1등급 (자연/최소 가공)',
-            color: '#10B981',
-            description: '가공되지 않거나 최소 가공된 자연 식품',
-            examples: '신선한 과일, 채소, 곡물, 견과류',
-        },
-        {
-            level: '2등급 (가공 식재료)',
-            color: '#F59E0B',
-            description: '조리에 사용되는 가공 식재료',
-            examples: '기름, 소금, 설탕, 벌꿀',
-        },
-        {
-            level: '3등급 (가공식품)',
-            color: '#F97316',
-            description: '1등급 + 2등급 결합 가공식품',
-            examples: '통조림, 단순 치즈, 잼',
-        },
-        {
-            level: '4등급 (초가공식품 - UPF)',
-            color: '#EF4444',
-            description: '공업적 공정을 거친 초가공식품',
-            examples: '스낵, 과자, 음료수, 즉석식품',
-        },
-    ],
+  title: 'NOVA 식품 분류 체계란?',
+  description:
+    '브라질 상파울루 대학에서 개발한 가공 정도에 따른 4단계 국제 공인 식품 분류 기준입니다.',
+  grades: [
+    {
+      level: '1등급 (자연/최소 가공)',
+      color: '#34D399', // 👈 연한 초록
+      description: '가공되지 않거나 최소 가공된 자연 식품',
+      examples: '신선한 과일, 채소, 곡물, 견과류',
+    },
+    {
+      level: '2등급 (가공 식재료)',
+      color: '#059669', // 👈 진한 초록
+      description: '조리에 사용되는 가공 식재료',
+      examples: '기름, 소금, 설탕, 벌꿀',
+    },
+    {
+      level: '3등급 (가공식품)',
+      color: '#F97316', // 👈 주황
+      description: '1등급 + 2등급 결합 가공식품',
+      examples: '통조림, 단순 치즈, 잼',
+    },
+    {
+      level: '4등급 (초가공식품 - UPF)',
+      color: '#EF4444', // 👈 빨강
+      description: '공업적 공정을 거친 초가공식품',
+      examples: '스낵, 과자, 음료수, 즉석식품',
+    },
+  ],
 };
 
-export const NOVA_GRADES = [
-    { id: 1, label: 'NOVA 1 (자연/최소 가공)', color: '#10B981' },
-    { id: 2, label: 'NOVA 2 (가공 식재료)', color: '#F59E0B' },
-    { id: 3, label: 'NOVA 3 (가공식품)', color: '#F97316' },
-    { id: 4, label: 'NOVA 4 (초가공식품)', color: '#EF4444' },
-];
-
+// 3. 영양성분 필터 목록
 export const NUTRITION_FILTERS = [
-    { id: 'lowSugar', label: '저당' },
-    { id: 'lowSodium', label: '저염/저나트륨' },
-    { id: 'noTransFat', label: '무트랜스지방' },
+  { id: 'lowSugar', label: '저당' },
+  { id: 'zeroTransFat', label: '무트랜스지방' },
+  { id: 'lowSodium', label: '저나트륨' },
+  { id: 'highProtein', label: '고단백' },
 ];
 
+// 4. 제외할 첨가물 목록
 export const EXCLUDED_ADDITIVES = [
-    { id: 'noArtificialSweetener', label: '합성감미료 제외' },
-    { id: 'noArtificialFlavor', label: '합성향료 제외' },
-    { id: 'noPreservative', label: '보존료 제외' },
+  { id: 'noSweetener', label: '합성감미료 제외' },
+  { id: 'noPreservative', label: '보존료 제외' },
+  { id: 'noColorant', label: '합성색소 제외' },
+  { id: 'noFlavorEnhancer', label: 'L-글루탐산나트륨 제외' },
 ];

@@ -37,17 +37,21 @@ export const BrandButton = styled.button`
   }
 `;
 
-export const LogoSymbol = styled.span`
-  width: 2.25rem;
-  height: 2.25rem;
+export const LogoSymbol = styled.div`
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.white};
+  background-color: #009245; /* 시그니처 초록색 */
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: ${({ theme }) => theme.typography.fontWeight.heavy};
-  font-size: 1.15rem;
+  flex-shrink: 0;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    color: #ffffff; /* 체크 아이콘 흰색 */
+  }
 `;
 
 export const LogoTitle = styled.span`

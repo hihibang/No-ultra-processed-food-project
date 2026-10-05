@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
@@ -8,25 +8,32 @@ from utils.upf_classifier import classify_food
 
 router = APIRouter(prefix="/api/foods", tags=["Foods"])
 
+
 @router.get("/search", response_model=FoodSearchResponse)
 async def search_foods(
-    q: Optional[str] = Query(None, description="검색어 (빈 값일 경우 전체 목록 조회)"),
+    q: Optional[str] = Query(None, description="검색어"),
+    category: Optional[str] = Query("전체", description="식품 카테고리"),
+    nova_grades: Optional[List[int]] = Query(None, description="NOVA 등급 다중 선택 (1~4)"),  # 👈 다중 선택 리스트 수신
+    limit: int = Query(1000, description="조회 개수"),
     db: AsyncSession = Depends(get_db)
 ):
-    # 검색어가 유효한 경우 공백 제거, 없거나 빈 문자열이면 None 처리
-    search_keyword = q.strip() if q and q.strip() else None
+    search_keyword = q.strip() if q and q.strip() else ""
 
-    # 검색어가 있으면 검색, 없으면 전체 목록 조회
-    if search_keyword:
-        rows = await FoodModel.search_foods(db, search_keyword)
-    else:
-        # FoodModel에 전체 목록 조회 메서드가 선언되어 있다고 가정
-        # (없으시다면 FoodModel.get_all_foods(db) 형태로 추가해주시면 됩니다)
-        rows = await FoodModel.get_all_foods(db) if hasattr(FoodModel, 'get_all_foods') else await FoodModel.search_foods(db, "")
+    rows = await FoodModel.search_foods(
+        db, 
+        keyword=search_keyword, 
+        category=category, 
+        limit=limit
+    )
 
     results = []
     for food in rows:
         upf = classify_food(food)
+
+        # 다중 선택된 nova_grades 배열에 해당 식품의 novaGroup이 들어있는지 확인
+        if nova_grades and upf["novaGroup"] not in nova_grades:
+            continue
+
         results.append({
             "reportNo": str(food["report_no"]),
             "productName": food["product_name"],
@@ -38,38 +45,5 @@ async def search_foods(
             "badgeColor": upf["badgeColor"],
             "isUPF": upf["isUPF"],
         })
+
     return {"count": len(results), "data": results}
-
-@router.get("/{report_no}", response_model=FoodDetailResponse)
-async def get_food_detail(
-    report_no: str,
-    db: AsyncSession = Depends(get_db)
-):
-    food = await FoodModel.find_by_report_no(db, report_no.strip())
-    if not food:
-        raise HTTPException(status_code=404, detail="식품을 찾을 수 없습니다.")
-
-    upf = classify_food(food)
-
-    return {
-        "product": {
-            "reportNo": str(food["report_no"]),
-            "productName": food["product_name"],
-            "companyName": food["company_name"],
-            "foodCategory": food["product_type"],
-            "productionDate": str(food["latest_date"]) if food["latest_date"] else None,
-        },
-        "nutrition": {
-            "calories": float(food["calories"] or 0.0),
-            "carbohydrate": float(food["carbohydrate"] or 0.0),
-            "protein": float(food["protein"] or 0.0),
-            "fat": float(food["fat"] or 0.0),
-            "sugars": float(food["sugars"] or 0.0),
-            "sodium": float(food["sodium"] or 0.0),
-            "cholesterol": float(food["cholesterol"] or 0.0),
-            "saturatedFat": float(food["saturated_fat"] or 0.0),
-            "transFat": float(food["trans_fat"] or 0.0),
-        },
-        "materials": food["raw_materials"],
-        "upfAnalysis": upf,
-    }

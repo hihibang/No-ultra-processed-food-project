@@ -34,17 +34,27 @@ export const ImageWrapper = styled.div`
   }
 `;
 
+// styles/ProductCard.styles.js (Badge 가변 색상)
+
 export const Badge = styled.span`
   position: absolute;
   top: 0.6rem;
   left: 0.6rem;
-  background-color: #dc2626;
   color: ${({ theme }) => theme.colors.white};
   font-size: ${({ theme }) => theme.typography.fontSize.xs};
   font-weight: ${({ theme }) => theme.typography.fontWeight.heavy};
   padding: 0.2rem 0.45rem;
   border-radius: 0.35rem;
   z-index: 5;
+
+  background-color: ${(props) => {
+    if (props.$badgeColor) return props.$badgeColor;
+    if (props.$novaGrade === 4) return '#EF4444'; // NOVA 4: 빨강
+    if (props.$novaGrade === 3) return '#F97316'; // NOVA 3: 주황
+    if (props.$novaGrade === 2) return '#059669'; // NOVA 2: 진한 초록
+    if (props.$novaGrade === 1) return '#34D399'; // NOVA 1: 연한 초록
+    return '#EF4444';
+  }};
 `;
 
 export const WishlistButton = styled.button`

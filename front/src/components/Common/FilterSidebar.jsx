@@ -42,7 +42,7 @@ function FilterSidebar({
   const sidebarRef = useRef(null);
   const novaPopoverRef = useRef(null);
 
-  // 모바일 탭 및 외부 클릭 감지
+  // 모바일 터치 및 외부 영역 클릭 감지
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (novaPopoverRef.current && !novaPopoverRef.current.contains(event.target)) {
@@ -56,21 +56,21 @@ function FilterSidebar({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // 데스크톱: 아이콘/팝오버 영역 진입 시 노출
+  // 데스크톱: 아이콘 진입 시 팝오버 표시
   const handleMouseEnter = () => {
     if (window.matchMedia('(hover: hover)').matches) {
       setShowNovaPopover(true);
     }
   };
 
-  // 데스크톱: 아이콘/팝오버 영역 이탈 시 숨김
+  // 데스크톱: 이탈 시 팝오버 숨김
   const handleMouseLeave = () => {
     if (window.matchMedia('(hover: hover)').matches) {
       setShowNovaPopover(false);
     }
   };
 
-  // 모바일 터치 및 클릭 토글
+  // 터치/클릭 토글
   const handleIconClick = (e) => {
     e.stopPropagation();
     setShowNovaPopover((prev) => !prev);
@@ -155,7 +155,9 @@ function FilterSidebar({
         <MasterFilterModal onClick={(e) => e.stopPropagation()}>
           <ModalHeader>
             <h4>통합 식품 필터 탐색기</h4>
-            <button className="close-btn" onClick={() => setIsMasterOpen(false)}>✕</button>
+            <button className="close-btn" onClick={() => setIsMasterOpen(false)}>
+              ✕
+            </button>
           </ModalHeader>
 
           <ModalGridContent>
@@ -178,14 +180,13 @@ function FilterSidebar({
 
             {/* 2열: NOVA 등급 + 영양성분 + 첨가물 */}
             <FilterGroupWrapper>
-              {/* NOVA 가공 등급 타이틀 + 축소된 호버 영역 */}
+              {/* NOVA 가공 등급 타이틀 영역 */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.6rem' }}>
                   <ModalSectionTitle style={{ marginBottom: 0 }}>
                     NOVA 가공 등급 (UPF)
                   </ModalSectionTitle>
 
-                  {/* 호버 영역을 아이콘과 팝오버 상자에만 타이트하게 제한 */}
                   <NovaTitleWrapper
                     ref={novaPopoverRef}
                     onMouseEnter={handleMouseEnter}
@@ -211,16 +212,16 @@ function FilterSidebar({
                       </svg>
                     </InfoIconButton>
 
-                    {/* 호버/터치 시 노출되는 NOVA 안내 팝오버 */}
+                    {/* NOVA 안내 팝오버 */}
                     {showNovaPopover && (
                       <NovaInfoPopover onClick={(e) => e.stopPropagation()}>
                         <h5>{NOVA_INFO.title}</h5>
                         <p className="intro-text">{NOVA_INFO.description}</p>
                         {NOVA_INFO.grades.map((grade, idx) => (
                           <GradeItem key={idx}>
-                            <div className="grade-header">
+                            <div className="grade-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <ColorDot $color={grade.color} />
-                              <span>{grade.level}</span>
+                              <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{grade.level}</span>
                             </div>
                             <p className="grade-desc">{grade.description}</p>
                             <p className="grade-examples">예: {grade.examples}</p>
@@ -231,6 +232,7 @@ function FilterSidebar({
                   </NovaTitleWrapper>
                 </div>
 
+                {/* NOVA 등급 체크박스 (1번 연한 초록, 2번 진한 초록 도트 색상 반영) */}
                 <CheckboxGroup>
                   {NOVA_GRADES.map((grade) => (
                     <CheckboxLabel key={grade.id}>

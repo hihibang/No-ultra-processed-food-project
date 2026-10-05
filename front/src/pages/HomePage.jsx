@@ -6,7 +6,6 @@ import HeroSection from '../components/Features/HeroSection';
 import CategoriesSection from '../components/Features/CategoriesSection';
 import FoodJournalSection from '../components/Journal/FoodJournalSection';
 import TimeDealSection from '../components/Features/TimeDealSection';
-import BottomFeaturesSection from '../components/Features/BottomFeaturesSection';
 
 function HomePage() {
   const navigate = useNavigate();
@@ -44,7 +43,6 @@ function HomePage() {
       <CategoriesSection onCategoryClick={handleCategoryClick} />
       <FoodJournalSection />
       <TimeDealSection onViewAll={handleViewAll} />
-      <BottomFeaturesSection />
     </MainContainer>
   );
 }

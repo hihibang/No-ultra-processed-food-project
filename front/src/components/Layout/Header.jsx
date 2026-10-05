@@ -62,10 +62,36 @@ function Header({ onSearch }) {
       <HeaderInner>
         <BrandGroup>
           <BrandButton onClick={handleBrandClick}>
-            <LogoSymbol>{getIcon('utensilsCrossed')}</LogoSymbol>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {/* 1. 첨부해주신 Lucide Circle Check Big SVG 아이콘 적용 */}
+            <LogoSymbol>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21.801 10A10 10 0 1 1 17 3.335" />
+                <path d="m9 11 3 3L22 4" />
+              </svg>
+            </LogoSymbol>
+
+            {/* 2. 제목 우측 상단 옆에 부제목 위치하도록 수평 상단 정렬 */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
               <LogoTitle>PingPong</LogoTitle>
-              <div style={{ fontSize: '12px', fontWeight: '500', color: '#666' }}>
+              <div
+                style={{
+                  fontSize: '11px',
+                  fontWeight: '500',
+                  color: '#666',
+                  whiteSpace: 'nowrap',
+                  marginTop: '1px',
+                }}
+              >
                 여러 번의 클릭에서 단 한 번의 선택을 찾다
               </div>
             </div>
@@ -96,18 +122,10 @@ function Header({ onSearch }) {
           <AuthGroup>
             {!isLoggedIn ? (
               <>
-                <Button
-                  variant="line"
-                  size="sm"
-                  onClick={handleSignupClick}
-                >
+                <Button variant="line" size="sm" onClick={handleSignupClick}>
                   회원가입
                 </Button>
-                <Button
-                  variant="line"
-                  size="sm"
-                  onClick={handleLoginClick}
-                >
+                <Button variant="line" size="sm" onClick={handleLoginClick}>
                   로그인
                 </Button>
               </>

@@ -19,7 +19,6 @@ import {
   Rating,
 } from './styles/ProductCard.styles';
 
-// DB product_type(세부유형)을 기반으로 UI 대분류 카테고리를 찾아주는 헬퍼 함수
 const getMainCategory = (subType) => {
   if (!subType) return '';
   if (['빵류'].includes(subType)) return '베이커리';
@@ -35,10 +34,8 @@ function ProductCard({ product, onClick }) {
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const { showToast } = useToast();
 
-  // 1. product 객체가 없을 때 안전 리턴
   if (!product) return null;
 
-  // 2. 데이터 전체 방어 파싱 (백엔드 / 프론트 필드명 상호 호환)
   const id = product.id ?? product.reportNo ?? '';
   const name = product.name ?? product.productName ?? '상품명 정보 없음';
   const brand = product.company ?? product.companyName ?? product.brand ?? '';
@@ -48,11 +45,10 @@ function ProductCard({ product, onClick }) {
   const image = product.image ?? product.imageUrl ?? '/images/div.relative.png';
   const novaGrade = product.novaGrade ?? product.novaGroup ?? null;
   const statusText = product.statusText ?? '';
+  const badgeColor = product.badgeColor ?? null;
   const rating = product.rating ?? null;
 
-  // 3. 대분류와 세부유형 각각 추출
   const mainCategory = getMainCategory(category);
-
   const inWishlist = isInWishlist(id);
 
   const handleAddToCart = (e) => {
@@ -77,16 +73,14 @@ function ProductCard({ product, onClick }) {
       <ImageWrapper>
         <img src={image} alt={name} />
 
-        {/* NOVA 등급 / 대표 뱃지 */}
         {novaGrade ? (
-          <Badge>
-            NOVA {novaGrade} {statusText && `· ${statusText}`}
+          <Badge $badgeColor={badgeColor}$novaGrade={novaGrade}>
+            NOVA {novaGrade} · {statusText}
           </Badge>
         ) : product.badge ? (
           <Badge>{product.badge}</Badge>
         ) : null}
 
-        {/* 위시리스트 & 장바구니 버튼 */}
         <WishlistButton onClick={handleToggleWishlist} $isWished={inWishlist}>
           {getIcon('heart')}
         </WishlistButton>
@@ -97,11 +91,10 @@ function ProductCard({ product, onClick }) {
 
       <CardInfo>
         <div>
-          {/* 초록색 태그 칸 각각 독립적으로 분리 렌더링 */}
+          {/* #NOVA_CLEAN 제거 후 대분류 및 세부유형만 표시 */}
           <IngredientTags>
             {mainCategory && <IngredientTag>{mainCategory}</IngredientTag>}
             {category && <IngredientTag>{category}</IngredientTag>}
-            {product.isUPF === false && <IngredientTag>#NOVA_CLEAN</IngredientTag>}
           </IngredientTags>
 
           <ProductName>{name}</ProductName>
