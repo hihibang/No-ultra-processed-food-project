@@ -6,9 +6,17 @@ COLLATE utf8mb4_unicode_ci;
 USE food_db;
 show full tables;
 
+SELECT 
+    product_type, 
+    COUNT(*) AS food_count
+FROM active_food_catalog
+GROUP BY product_type
+ORDER BY food_count DESC;
+
 desc food_nutrition; -- 테이블 & 뷰 컬럼 구조 확인
 select * from food_additive_standard where additive_category = "향미증진제";
-select * from recipe;
+select * from recipe where menu_name like "%스프%";
+describe recipe;
 
 -- ========================================================
 -- DB에서 데이터 가져와 만든 테이블에 넣는 과정
