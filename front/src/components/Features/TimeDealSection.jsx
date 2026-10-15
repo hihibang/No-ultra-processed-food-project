@@ -13,8 +13,8 @@ function TimeDealSection({ onViewAll }) {
     <TimeDealSectionWrapper>
       <SectionHeader>
         <div>
-          <SectionLabel>🔥 오늘의 특가</SectionLabel>
-          <h2>⏰ 타임딜</h2>
+          <SectionLabel>🔎 상품 비교하기</SectionLabel>
+          <h2>📦 상품 목록</h2>
         </div>
         <ViewAllButton onClick={onViewAll}>
           전체 보기 →

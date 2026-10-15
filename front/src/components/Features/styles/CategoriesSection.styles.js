@@ -4,6 +4,7 @@ import { containerMax } from '../../../styles/mixins';
 export const CategoriesSectionWrapper = styled.section`
   ${containerMax}
   padding: 2.5rem 1.5rem;
+  width: 100%;
 `;
 
 export const SectionHeader = styled.div`
@@ -32,7 +33,8 @@ export const SectionLabel = styled.span`
 
 export const CategoriesGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: 0.5rem;
+  /* 10개에서 8개로 수정하여 전체 컨테이너 너비를 균등 분할하도록 변경 */
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.75rem; /* 카드 간 간격을 자연스럽게 조정 */
   width: 100%;
 `;

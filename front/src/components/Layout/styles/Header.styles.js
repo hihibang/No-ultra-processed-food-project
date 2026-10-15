@@ -12,8 +12,15 @@ export const HeaderWrapper = styled.header`
 export const HeaderInner = styled.div`
   ${containerMax}
   ${flexBetween}
-  gap: ${({ theme }) => theme.spacing.lg};
+  width: 100%;
   padding: 0.75rem 1.5rem;
+`;
+
+/* [왼쪽 영역] 로고, 검색창, 네비게이션 묶음 */
+export const LeftGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px;
 `;
 
 export const BrandGroup = styled.div`
@@ -41,7 +48,7 @@ export const LogoSymbol = styled.div`
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background-color: #009245; /* 시그니처 초록색 */
+  background-color: #009245;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,8 +57,14 @@ export const LogoSymbol = styled.div`
   svg {
     width: 20px;
     height: 20px;
-    color: #ffffff; /* 체크 아이콘 흰색 */
+    color: #ffffff;
   }
+`;
+
+export const BrandTitleGroup = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 `;
 
 export const LogoTitle = styled.span`
@@ -61,36 +74,33 @@ export const LogoTitle = styled.span`
   letter-spacing: -0.5px;
 `;
 
-export const AIBadge = styled.span`
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.white};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-  padding: 0.35rem 0.75rem;
-  border-radius: ${({ theme }) => theme.borderRadius.full};
-  display: flex;
-  align-items: center;
-  justify-content: center;
+export const SubTitle = styled.div`
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+  white-space: nowrap;
+  margin-top: 1px;
 `;
 
-export const HeaderActions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
+/* 검색창 래퍼 */
+export const SearchBoxWrapper = styled.div`
+  width: 280px;
   flex-shrink: 0;
 `;
 
+/* 네비게이션 탭 Pill */
 export const ViewSwitchPill = styled.div`
   display: flex;
+  align-items: center;
   background-color: ${({ theme }) => theme.colors.bgGray};
-  padding: 0.15rem;
+  padding: 0.2rem;
   border-radius: ${({ theme }) => theme.borderRadius.full};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   border: 1px solid ${({ theme }) => theme.colors.borderColor};
 `;
 
 export const SwitchButton = styled.button`
-  padding: 0.35rem 0.75rem;
+  padding: 0.35rem 0.85rem;
   border-radius: ${({ theme }) => theme.borderRadius.full};
   display: flex;
   align-items: center;
@@ -102,6 +112,7 @@ export const SwitchButton = styled.button`
   cursor: pointer;
   font-family: inherit;
   font-size: inherit;
+  white-space: nowrap;
   transition: all 0.15s ease;
 
   &.active {
@@ -110,6 +121,19 @@ export const SwitchButton = styled.button`
     font-weight: ${({ theme }) => theme.typography.fontWeight.heavy};
     box-shadow: ${({ theme }) => theme.shadows.light};
   }
+`;
+
+/* [중앙 여백 Spacer] */
+export const Spacer = styled.div`
+  flex: 1;
+`;
+
+/* [오른쪽 영역] 회원 및 위시리스트 */
+export const HeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
 `;
 
 export const AuthGroup = styled.div`
@@ -125,26 +149,7 @@ export const UserBadge = styled.span`
   padding: 0.35rem 0.75rem;
   border-radius: ${({ theme }) => theme.borderRadius.full};
   font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-`;
-
-export const CartButton = styled.button`
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.white};
-  border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: ${({ theme }) => theme.borderRadius.full};
-  font-size: 0.85rem;
-  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-  font-family: inherit;
-  position: relative;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.primaryHover};
-  }
 `;
 
 export const WishlistButton = styled.button`

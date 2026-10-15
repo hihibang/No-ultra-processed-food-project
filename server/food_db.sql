@@ -5,7 +5,7 @@ COLLATE utf8mb4_unicode_ci;
 
 USE food_db;
 show full tables;
-
+   
 SELECT 
     product_type, 
     COUNT(*) AS food_count
@@ -16,7 +16,36 @@ ORDER BY food_count DESC;
 desc food_nutrition; -- 테이블 & 뷰 컬럼 구조 확인
 select * from food_additive_standard where additive_category = "향미증진제";
 select * from recipe where menu_name like "%스프%";
-describe recipe;
+describe active_food_catalog;
+select * from food_commerce_catalog;
+
+ALTER TABLE active_fooxd_catalog 
+ADD COLUMN image_url VARCHAR(500) DEFAULT NULL AFTER raw_materials;
+
+CREATE TABLE IF NOT EXISTS food_commerce_catalog (
+    report_no VARCHAR(50) PRIMARY KEY,      -- 품목제조보고번호
+    product_name VARCHAR(255) NOT NULL,     -- 식품명
+    company_name VARCHAR(100),              -- 제조사/브랜드
+    product_type VARCHAR(100),              -- 식품 유형
+    
+    -- 커머스 수집 데이터 (핵심 2가지)
+    image_url TEXT NOT NULL,                -- 상품 이미지 URL
+    price INT DEFAULT 0,                    -- 판매 가격
+    
+    -- 영양성분 & 원재료 데이터
+    calories FLOAT DEFAULT 0.0,
+    carbohydrate FLOAT DEFAULT 0.0,
+    protein FLOAT DEFAULT 0.0,
+    fat FLOAT DEFAULT 0.0,
+    sugars FLOAT DEFAULT 0.0,
+    sodium FLOAT DEFAULT 0.0,
+    cholesterol FLOAT DEFAULT 0.0,
+    saturated_fat FLOAT DEFAULT 0.0,
+    trans_fat FLOAT DEFAULT 0.0,
+    raw_materials TEXT,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 -- ========================================================
 -- DB에서 데이터 가져와 만든 테이블에 넣는 과정

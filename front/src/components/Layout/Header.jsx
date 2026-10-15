@@ -6,21 +6,24 @@ import { useViewMode } from '../../hooks/useViewMode';
 import { getIcon } from '../../constants/icons';
 import SearchBox from '../Common/SearchBox';
 import Button from '../Common/Button';
-import Badge from '../Common/Badge';
 import AuthModal from '../Auth/AuthModal';
 import {
   HeaderWrapper,
   HeaderInner,
+  LeftGroup,
   BrandGroup,
   BrandButton,
   LogoSymbol,
+  BrandTitleGroup,
   LogoTitle,
-  HeaderActions,
+  SubTitle,
+  SearchBoxWrapper,
   ViewSwitchPill,
   SwitchButton,
+  Spacer,
+  HeaderActions,
   AuthGroup,
   UserBadge,
-  CartButton,
   WishlistButton,
   CounterBadge,
 } from './styles/Header.styles';
@@ -28,14 +31,16 @@ import {
 function Header({ onSearch }) {
   const navigate = useNavigate();
   const { isLoggedIn, userName, logout } = useAuth();
-  const { cartCount, wishlistCount } = useCart();
+  const { wishlistCount } = useCart();
   const { viewMode, switchView } = useViewMode();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('login');
 
   const handleViewChange = (mode) => {
     switchView(mode);
-    navigate(mode === 'catalog' ? '/catalog' : '/');
+    if (mode === 'home') navigate('/');
+    else if (mode === 'chat') navigate('/ai-chat');
+    else if (mode === 'catalog') navigate('/catalog');
   };
 
   const handleBrandClick = () => {
@@ -60,50 +65,38 @@ function Header({ onSearch }) {
   return (
     <HeaderWrapper>
       <HeaderInner>
-        <BrandGroup>
-          <BrandButton onClick={handleBrandClick}>
-            {/* 1. 첨부해주신 Lucide Circle Check Big SVG 아이콘 적용 */}
-            <LogoSymbol>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21.801 10A10 10 0 1 1 17 3.335" />
-                <path d="m9 11 3 3L22 4" />
-              </svg>
-            </LogoSymbol>
+        {/* [왼쪽 영역] 로고 - 검색창 - 네비게이션 탭 */}
+        <LeftGroup>
+          <BrandGroup>
+            <BrandButton onClick={handleBrandClick}>
+              <LogoSymbol>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21.801 10A10 10 0 1 1 17 3.335" />
+                  <path d="m9 11 3 3L22 4" />
+                </svg>
+              </LogoSymbol>
 
-            {/* 2. 제목 우측 상단 옆에 부제목 위치하도록 수평 상단 정렬 */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-              <LogoTitle>PingPong</LogoTitle>
-              <div
-                style={{
-                  fontSize: '11px',
-                  fontWeight: '500',
-                  color: '#666',
-                  whiteSpace: 'nowrap',
-                  marginTop: '1px',
-                }}
-              >
-                여러 번의 클릭에서 단 한 번의 선택을 찾다
-              </div>
-            </div>
-          </BrandButton>
-        </BrandGroup>
+              <BrandTitleGroup>
+                <LogoTitle>PingPong</LogoTitle>
+                <SubTitle>여러 번의 클릭에서 단 한 번의 선택을 찾다</SubTitle>
+              </BrandTitleGroup>
+            </BrandButton>
+          </BrandGroup>
 
-        <SearchBox
-          onSearch={onSearch}
-          hints={['#저당', '#비건', '#유기농', '#단백질', '#무첨가']}
-          placeholder="피하고 싶은 원재료명이나 찾고 있는 성분을 검색해 보세요"
-        />
-        <HeaderActions>
+          <SearchBoxWrapper>
+            <SearchBox onSearch={onSearch} />
+          </SearchBoxWrapper>
+
           <ViewSwitchPill>
             <SwitchButton
               className={viewMode === 'home' ? 'active' : ''}
@@ -112,13 +105,25 @@ function Header({ onSearch }) {
               홈
             </SwitchButton>
             <SwitchButton
+              className={viewMode === 'chat' ? 'active' : ''}
+              onClick={() => handleViewChange('chat')}
+            >
+              AI 챗봇
+            </SwitchButton>
+            <SwitchButton
               className={viewMode === 'catalog' ? 'active' : ''}
               onClick={() => handleViewChange('catalog')}
             >
-              식품 목록
+              상품 목록
             </SwitchButton>
           </ViewSwitchPill>
+        </LeftGroup>
 
+        {/* [중앙 여백] */}
+        <Spacer />
+
+        {/* [오른쪽 영역] 회원 기능 & 위시리스트 */}
+        <HeaderActions>
           <AuthGroup>
             {!isLoggedIn ? (
               <>
@@ -131,7 +136,12 @@ function Header({ onSearch }) {
               </>
             ) : (
               <>
-                <UserBadge>{userName}</UserBadge>
+                <UserBadge onClick={() => navigate('/mypage')}>
+                  {userName} 님
+                </UserBadge>
+                <Button variant="line" size="sm" onClick={() => navigate('/mypage')}>
+                  마이페이지
+                </Button>
                 <Button variant="gray" size="sm" onClick={handleLogout}>
                   로그아웃
                 </Button>
@@ -139,13 +149,7 @@ function Header({ onSearch }) {
             )}
           </AuthGroup>
 
-          <CartButton onClick={() => navigate('/cart')}>
-            <span>{getIcon('shoppingBag')}</span>
-            <span>장바구니</span>
-            {cartCount > 0 && <CounterBadge>{cartCount}</CounterBadge>}
-          </CartButton>
-
-          <WishlistButton onClick={() => navigate('/wishlist')}>
+          <WishlistButton onClick={() => navigate('/wishlist')} title="위시리스트">
             <span>{getIcon('heart')}</span>
             {wishlistCount > 0 && (
               <CounterBadge isRed>{wishlistCount}</CounterBadge>

@@ -6,27 +6,20 @@ import {
   HeroButtons,
 } from './styles/HeroSection.styles';
 
-function HeroSection({ onPopupOpen, onCatalogClick }) {
+function HeroSection({ onPopupOpen, onCatalogClick, onAIChat }) {
   return (
     <HeroSectionWrapper>
       <HeroBanner>
         <HeroContent>
-          <h1>🎁 성분 중심의 건강한 식품 마켓에 오신 것을 환영합니다</h1>
-          <p>원하는 성분을 찾거나 피하고 싶은 원재료를 검색하세요. 당신의 건강한 선택을 도와드립니다.</p>
+          <h1>내 주방 환경에 딱 맞는<br />맞춤형 AI 레시피 챗봇 출시!</h1>
+          <p>AI가 당신의 주방 환경을 파악하고 맞춤형 레시피를 추천해줍니다. 이제 더 이상 고민하지 마세요!</p>
           <HeroButtons>
             <Button
               variant="primary"
               size="lg"
-              onClick={onPopupOpen}
+              onClick={onAIChat}
             >
-              🎁 메인 팝업창 열기 & 쿠폰 받기
-            </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={onCatalogClick}
-            >
-              인기 성분 식품관 가기 →
+              AI 레시피 체험하기 →
             </Button>
           </HeroButtons>
         </HeroContent>

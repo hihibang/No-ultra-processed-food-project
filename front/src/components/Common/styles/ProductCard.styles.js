@@ -153,29 +153,35 @@ export const ProductSub = styled.p`
   margin: 0;
 `;
 
-export const PriceRow = styled.div`
+export const CompareButtonGroup = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  gap: 0.5rem;
   margin-top: 0.75rem;
-  padding-top: 0.65rem;
+  padding-top: 0.75rem;
   border-top: 1px solid #f3f4f6;
 `;
 
-export const OriginalPrice = styled.span`
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  text-decoration: line-through;
-  color: ${({ theme }) => theme.colors.textMuted};
-`;
-
-export const CurrentPrice = styled.span`
-  font-size: 1.1rem;
-  font-weight: ${({ theme }) => theme.typography.fontWeight.heavy};
-  color: ${({ theme }) => theme.colors.primary};
-`;
-
-export const Rating = styled.span`
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+export const CompareButton = styled.button`
+  flex: 1;
+  padding: 0.6rem 0.5rem;
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
   font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-  color: #f59e0b;
+  background-color: ${({ $isActive, theme }) =>
+    $isActive ? theme.colors.primary : '#f3f4f6'};
+  color: ${({ $isActive, theme }) =>
+    $isActive ? theme.colors.white : theme.colors.textMain};
+  border: 1px solid ${({ $isActive, theme }) =>
+    $isActive ? theme.colors.primary : '#e5e7eb'};
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    background-color: ${({ $isActive, theme }) =>
+      $isActive ? theme.colors.primary : '#e5e7eb'};
+    transform: translateY(-1px);
+  }
 `;

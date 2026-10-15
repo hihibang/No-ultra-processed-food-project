@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCart } from '../../hooks/useCart';
+import { useCompare } from '../../hooks/useCompare';
 import { useToast } from '../../hooks/useToast';
 import { getIcon } from '../../constants/icons';
 import {
@@ -13,10 +14,8 @@ import {
   IngredientTag,
   ProductName,
   ProductSub,
-  PriceRow,
-  OriginalPrice,
-  CurrentPrice,
-  Rating,
+  CompareButtonGroup,
+  CompareButton,
 } from './styles/ProductCard.styles';
 
 const getMainCategory = (subType) => {
@@ -32,6 +31,7 @@ const getMainCategory = (subType) => {
 
 function ProductCard({ product, onClick }) {
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
+  const { addToCompare, isInCompare } = useCompare();
   const { showToast } = useToast();
 
   if (!product) return null;
@@ -68,6 +68,16 @@ function ProductCard({ product, onClick }) {
     );
   };
 
+  const handleAddToCompare = (e) => {
+    e.stopPropagation();
+    addToCompare({ ...product, id, name, price });
+  };
+
+  const handleSimilarCompare = (e) => {
+    e.stopPropagation();
+    showToast(`${name}과 유사한 상품으로 비교합니다.`, 'info');
+  };
+
   return (
     <CardWrapper onClick={onClick}>
       <ImageWrapper>
@@ -101,15 +111,22 @@ function ProductCard({ product, onClick }) {
           {brand && <ProductSub>{brand}</ProductSub>}
         </div>
 
-        <PriceRow>
-          <div>
-            {originalPrice && (
-              <OriginalPrice>{originalPrice.toLocaleString()}원</OriginalPrice>
-            )}
-            <CurrentPrice>{price.toLocaleString()}원</CurrentPrice>
-          </div>
-          {rating && <Rating>⭐ {rating}</Rating>}
-        </PriceRow>
+        <div>
+
+          <CompareButtonGroup>
+            <CompareButton
+              onClick={handleAddToCompare}
+              $isActive={isInCompare(id)}
+            >
+              + 비교함 담기
+            </CompareButton>
+            <CompareButton
+              onClick={handleSimilarCompare}
+            >
+              유사 상품 비교
+            </CompareButton>
+          </CompareButtonGroup>
+        </div>
       </CardInfo>
     </CardWrapper>
   );

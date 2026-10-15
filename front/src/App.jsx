@@ -5,11 +5,13 @@ import { theme } from './styles/theme';
 import { ToastProvider } from './contexts/ToastContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { CompareProvider } from './contexts/CompareContext';
 import { ViewModeProvider } from './contexts/ViewModeContext';
 import { SearchProvider } from './contexts/SearchContext';
 import HomePage from './pages/HomePage';
 import CatalogPage from './pages/CatalogPage';
 import JournalPage from './pages/JournalPage';
+import AIChatPage from './pages/AIChatPage';
 
 function App() {
   return (
@@ -18,17 +20,20 @@ function App() {
       <ToastProvider>
         <AuthProvider>
           <CartProvider>
-            <ViewModeProvider>
-              <SearchProvider>
+            <CompareProvider>
+              <ViewModeProvider>
+                <SearchProvider>
                 <Router>
                   <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/catalog" element={<CatalogPage />} />
                     <Route path="/journal" element={<JournalPage />} />
+                    <Route path="/ai-chat" element={<AIChatPage />} />
                   </Routes>
                 </Router>
-              </SearchProvider>
-            </ViewModeProvider>
+                </SearchProvider>
+              </ViewModeProvider>
+            </CompareProvider>
           </CartProvider>
         </AuthProvider>
       </ToastProvider>

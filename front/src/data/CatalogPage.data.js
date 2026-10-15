@@ -8,7 +8,6 @@ export const CATEGORY_OPTIONS = [
   '신선식품',
   '간편식',
   '소스/양념',
-  '건강식품',
 ];
 
 export const SAMPLE_PRODUCTS = [

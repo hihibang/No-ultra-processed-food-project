@@ -1,16 +1,20 @@
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../hooks/useToast';
 import { useViewMode } from '../hooks/useViewMode';
+import { useCompare } from '../hooks/useCompare';
 import MainContainer from '../components/Layout/MainContainer';
 import HeroSection from '../components/Features/HeroSection';
 import CategoriesSection from '../components/Features/CategoriesSection';
+import CreatorGroupBuySection from '../components/Features/CreatorGroupBuySection';
 import FoodJournalSection from '../components/Journal/FoodJournalSection';
 import TimeDealSection from '../components/Features/TimeDealSection';
+import CompareToast from '../components/Common/CompareToast';
 
 function HomePage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { switchView } = useViewMode();
+  const { showToast: showCompareToast, toastData, setShowToast } = useCompare();
 
   const handleSearch = (searchQuery) => {
     showToast(`'${searchQuery}'에 대해 검색하시겠습니까?`, 'success', 2000);
@@ -34,16 +38,31 @@ function HomePage() {
     navigate('/catalog');
   };
 
+  const handleAIChat = () => {
+    navigate('/ai-chat');
+  };
+
   return (
-    <MainContainer onSearch={handleSearch}>
-      <HeroSection
-        onPopupOpen={handleHeroPopup}
-        onCatalogClick={handleCatalogClick}
+    <>
+      <MainContainer onSearch={handleSearch}>
+        <HeroSection
+          onPopupOpen={handleHeroPopup}
+          onCatalogClick={handleCatalogClick}
+          onAIChat={handleAIChat}
+        />
+        <CreatorGroupBuySection />
+        <FoodJournalSection />
+        <CategoriesSection onCategoryClick={handleCategoryClick} />
+        <TimeDealSection onViewAll={handleViewAll} />
+      </MainContainer>
+      <CompareToast
+        isOpen={showCompareToast}
+        onClose={() => setShowToast(false)}
+        productName={toastData.productName}
+        compareCount={toastData.count}
+        duration={2000}
       />
-      <CategoriesSection onCategoryClick={handleCategoryClick} />
-      <FoodJournalSection />
-      <TimeDealSection onViewAll={handleViewAll} />
-    </MainContainer>
+    </>
   );
 }
 

@@ -7,6 +7,7 @@ class FoodSearchItem(BaseModel):
     companyName: Optional[str] = None
     foodCategory: Optional[str] = None
     calories: Optional[float] = 0.0
+    imageUrl: Optional[str] = None
     novaGroup: int
     statusText: str
     badgeColor: str
