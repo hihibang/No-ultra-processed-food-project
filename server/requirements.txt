@@ -8,3 +8,6 @@ greenlet
 pymysql
 cryptography
 ollama
+bcrypt
+email-validator
+pyjwt

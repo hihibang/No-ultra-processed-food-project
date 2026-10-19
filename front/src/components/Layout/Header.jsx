@@ -30,11 +30,22 @@ import {
 
 function Header({ onSearch }) {
   const navigate = useNavigate();
-  const { isLoggedIn, userName, logout } = useAuth();
+  // user 객체 또는 userName 둘 다 안전하게 대응
+  const { isLoggedIn, user, userName, logout } = useAuth();
   const { wishlistCount } = useCart();
   const { viewMode, switchView } = useViewMode();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('login');
+
+  // 화면에 표기할 최종 사용자 이름 (user가 객체인 경우와 문자열인 경우 모두 대비)
+  const displayName =
+    typeof user === 'object' && user?.name
+      ? user.name
+      : typeof userName === 'string'
+      ? userName
+      : typeof user === 'string'
+      ? user
+      : '사용자';
 
   const handleViewChange = (mode) => {
     switchView(mode);
@@ -137,7 +148,7 @@ function Header({ onSearch }) {
             ) : (
               <>
                 <UserBadge onClick={() => navigate('/mypage')}>
-                  {userName} 님
+                  {displayName} 님
                 </UserBadge>
                 <Button variant="line" size="sm" onClick={() => navigate('/mypage')}>
                   마이페이지

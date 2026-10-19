@@ -46,6 +46,14 @@ export function CartProvider({ children }) {
     });
   }, []);
 
+  const removeFromWishlist = useCallback((productId) => {
+    setWishlist(prev => prev.filter(item => item.id !== productId));
+  }, []);
+
+  const clearWishlist = useCallback(() => {
+    setWishlist([]);
+  }, []);
+
   const isInWishlist = useCallback((productId) => {
     return wishlist.some(item => item.id === productId);
   }, [wishlist]);
@@ -62,6 +70,8 @@ export function CartProvider({ children }) {
     removeFromCart,
     updateCartQuantity,
     toggleWishlist,
+    removeFromWishlist,
+    clearWishlist,
     isInWishlist,
   };
 

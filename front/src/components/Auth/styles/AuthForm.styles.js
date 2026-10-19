@@ -91,3 +91,59 @@ export const SwitchButton = styled.button`
   padding: 0;
   font-size: inherit;
 `;
+
+export const StepIndicator = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textMuted};
+`;
+
+export const StepDot = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
+  background: ${({ $active, theme }) => ($active ? theme.colors.primary : theme.colors.borderColor)};
+  color: ${({ $active }) => ($active ? '#fff' : '#6b7280')};
+`;
+
+export const ErrorText = styled.p`
+  margin: 0;
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.error};
+`;
+
+export const ChipSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+export const ChipGroup = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+`;
+
+export const Chip = styled.button`
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid ${({ $active, theme }) => ($active ? theme.colors.primary : theme.colors.borderColor)};
+  background: ${({ $active, theme }) => ($active ? theme.colors.primary : '#fff')};
+  color: ${({ $active, theme }) => ($active ? '#fff' : theme.colors.textSub)};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+`;

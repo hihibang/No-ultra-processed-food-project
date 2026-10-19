@@ -29,9 +29,9 @@ function AuthModal({ isOpen, onClose, defaultTab = 'login' }) {
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
       {activeTab === 'login' ? (
-        <LoginForm onSwitchToSignup={handleSwitchToSignup} />
+        <LoginForm onSwitchToSignup={() => setActiveTab('signup')} onClose={onClose} />
       ) : (
-        <SignupForm onSwitchToLogin={handleSwitchToLogin} />
+        <SignupForm onSwitchToLogin={() => setActiveTab('login')} onClose={onClose} />
       )}
     </Modal>
   );

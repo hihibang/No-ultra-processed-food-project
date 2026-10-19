@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import { GlobalStyles } from './styles/globalStyles';
 import { theme } from './styles/theme';
@@ -12,6 +12,7 @@ import HomePage from './pages/HomePage';
 import CatalogPage from './pages/CatalogPage';
 import JournalPage from './pages/JournalPage';
 import AIChatPage from './pages/AIChatPage';
+import MyPage from './pages/MyPage';
 
 function App() {
   return (
@@ -29,6 +30,8 @@ function App() {
                     <Route path="/catalog" element={<CatalogPage />} />
                     <Route path="/journal" element={<JournalPage />} />
                     <Route path="/ai-chat" element={<AIChatPage />} />
+                    <Route path="/mypage" element={<MyPage />} />
+                    <Route path="/wishlist" element={<Navigate to="/mypage?tab=wishlist" replace />} />
                   </Routes>
                 </Router>
                 </SearchProvider>

@@ -5,18 +5,11 @@ COLLATE utf8mb4_unicode_ci;
 
 USE food_db;
 show full tables;
-   
-SELECT 
-    product_type, 
-    COUNT(*) AS food_count
-FROM active_food_catalog
-GROUP BY product_type
-ORDER BY food_count DESC;
 
 desc food_nutrition; -- 테이블 & 뷰 컬럼 구조 확인
 select * from food_additive_standard where additive_category = "향미증진제";
 select * from recipe where menu_name like "%스프%";
-describe active_food_catalog;
+describe users;
 select * from food_commerce_catalog;
 
 ALTER TABLE active_fooxd_catalog 
@@ -357,3 +350,27 @@ SET additive_category = '기타첨가제'
 WHERE additive_category IS NULL;
 
 SET SQL_SAFE_UPDATES = 1;
+
+USE food_db;
+
+-- 기존 테이블이 있다면 삭제 후 재생성 (필요 시)
+-- DROP TABLE IF EXISTS users;
+
+CREATE TABLE IF NOT EXISTS users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '사용자 고유 ID',
+    email VARCHAR(150) NOT NULL UNIQUE COMMENT '이메일 (로그인 ID)',
+    password VARCHAR(255) NOT NULL COMMENT '암호화된 비밀번호',
+    name VARCHAR(100) NOT NULL COMMENT '사용자 이름',
+    
+    -- Step 2: 주방기기 및 취향 정보 (JSON 타입으로 유연하게 저장)
+    appliances JSON NULL COMMENT '보유 주방기기 목록 (예: ["microwave", "airFryer", "induction"])',
+    preferences JSON NULL COMMENT '선호 요리 스타일 (예: ["quick", "healthy", "spicy"])',
+    cooking_level VARCHAR(50) DEFAULT 'beginner' COMMENT '요리 숙련도',
+    
+    -- 회원 상태 및 가입일
+    is_active TINYINT(1) DEFAULT 1 COMMENT '계정 활성화 여부 (1: 활성, 0: 탈퇴)',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    
+    INDEX idx_user_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='사용자 계정 및 취향 마스터 테이블';

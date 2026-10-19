@@ -14,13 +14,15 @@ import {
   SwitchButton,
 } from './styles/AuthForm.styles';
 
-function LoginForm({ onSwitchToSignup }) {
+const API_BASE_URL = 'http://127.0.0.1:8000';
+
+function LoginForm({ onSwitchToSignup, onClose }) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login } = useAuth(); // AuthContext의 login 함수
   const { showToast } = useToast();
 
   const handleChange = (e) => {
@@ -38,11 +40,50 @@ function LoginForm({ onSwitchToSignup }) {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      login(formData.email.split('@')[0]);
-      showToast('로그인되었습니다!', 'success');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password,
+        }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        const detail = typeof body.detail === 'string' ? body.detail : '로그인에 실패했습니다.';
+        throw new Error(detail);
+      }
+
+      const data = await response.json();
+      const { access_token, user } = data;
+
+      // 1. LocalStorage 저장
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('user_info', JSON.stringify(user));
+
+      // 2. Cookie 저장 (1시간)
+      document.cookie = `access_token=${access_token}; path=/; max-age=3600; SameSite=Lax`;
+
+      // 3. AuthContext 상태 업데이트 (user 객체 전달)
+      login(user);
+
+      showToast(`${user.name}님, 환영합니다!`, 'success');
+
+      // 4. 모달 자동 닫기
+      if (onClose) {
+        onClose();
+      }
+    } catch (error) {
+      if (error instanceof TypeError) {
+        showToast('서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.', 'error');
+      } else {
+        showToast(error.message, 'error');
+      }
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   return (
