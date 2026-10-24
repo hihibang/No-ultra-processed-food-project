@@ -7,8 +7,9 @@ import HeroSection from '../components/Features/HeroSection';
 import CategoriesSection from '../components/Features/CategoriesSection';
 import CreatorGroupBuySection from '../components/Features/CreatorGroupBuySection';
 import FoodJournalSection from '../components/Journal/FoodJournalSection';
-import TimeDealSection from '../components/Features/TimeDealSection';
+import RecentProductsSection from '../components/Features/RecentProductsSection';
 import CompareToast from '../components/Common/CompareToast';
+import { CATEGORY_OPTIONS } from '../data/CatalogPage.data';
 
 function HomePage() {
   const navigate = useNavigate();
@@ -29,8 +30,11 @@ function HomePage() {
     navigate('/catalog');
   };
 
+  // 카탈로그에 없는 카테고리(예: 유기농)는 전체 목록으로 이동
   const handleCategoryClick = (category) => {
-    showToast(`${category.title} 카테고리로 이동합니다.`, 'success');
+    const target = CATEGORY_OPTIONS.includes(category.title) ? category.title : '전체';
+    switchView('catalog');
+    navigate(target === '전체' ? '/catalog' : `/catalog?category=${encodeURIComponent(target)}`);
   };
 
   const handleViewAll = () => {
@@ -53,7 +57,7 @@ function HomePage() {
         <CreatorGroupBuySection />
         <FoodJournalSection />
         <CategoriesSection onCategoryClick={handleCategoryClick} />
-        <TimeDealSection onViewAll={handleViewAll} />
+        <RecentProductsSection />
       </MainContainer>
       <CompareToast
         isOpen={showCompareToast}

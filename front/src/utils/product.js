@@ -15,6 +15,20 @@ export const normalizeProduct = (product) => {
   };
 };
 
+// 식품 검색/최신 상품 응답(camelCase)을 ProductCard 입력 형태로 변환
+export const toCatalogCardProduct = (item) => ({
+  id: item.reportNo,
+  name: item.productName,
+  company: item.companyName,
+  category: item.foodCategory,
+  calories: item.calories,
+  imageUrl: item.imageUrl,
+  novaGrade: item.novaGroup,
+  statusText: item.statusText,
+  badgeColor: item.badgeColor,
+  isUPF: item.isUPF,
+});
+
 // 서버 찜 목록 응답({ food_id, food_details })을 화면 상품 객체로 변환
 export const fromWishlistEntry = (entry) => {
   const details = entry.food_details;

@@ -39,7 +39,8 @@ function Header({ onSearch }) {
   const { compareCount } = useCompare();
   const { viewMode, switchView } = useViewMode();
   // AI 챗봇 페이지는 URL 기준으로 active 처리 (직접 접속/뒤로가기 시에도 표시되도록)
-  const activeMode = pathname === '/ai-chat' ? 'chat' : viewMode;
+  const activeMode =
+    pathname === '/ai-chat' ? 'chat' : pathname === '/catalog' ? 'catalog' : viewMode;
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('login');
 

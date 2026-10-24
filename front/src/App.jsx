@@ -14,6 +14,7 @@ import JournalPage from './pages/JournalPage';
 import AIChatPage from './pages/AIChatPage';
 import MyPage from './pages/MyPage';
 import ComparePage from './pages/ComparePage';
+import LoginPage from './pages/LoginPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
                     <Route path="/ai-chat" element={<AIChatPage />} />
                     <Route path="/mypage" element={<MyPage />} />
                     <Route path="/compare" element={<ComparePage />} />
+                    <Route path="/login" element={<LoginPage />} />
                     <Route path="/wishlist" element={<Navigate to="/mypage?tab=wishlist" replace />} />
                   </Routes>
                 </Router>

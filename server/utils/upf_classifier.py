@@ -72,6 +72,13 @@ UPF_MARKERS = {
     },
 }
 
+# 5. 영양성분 경고별 upfScore 가산점 (STEP 2에서 사용, 건강 점수에서 중복 감점하지 않도록 역산에도 사용)
+NUTRITION_WARNING_POINTS = {
+    "고당류 식품": 2,
+    "고나트륨 식품": 2,
+    "고포화지방 식품": 1,
+}
+
 def classify_food(food_data: dict) -> dict:
     product_type = str(food_data.get("product_type") or "").strip()
     product_name = str(food_data.get("product_name") or "").strip()
@@ -105,13 +112,13 @@ def classify_food(food_data: dict) -> dict:
     # STEP 2: 영양성분 프로파일 가산점
     nutrition_warnings = []
     if sugars >= 15.0:
-        upf_score += 2
+        upf_score += NUTRITION_WARNING_POINTS["고당류 식품"]
         nutrition_warnings.append("고당류 식품")
     if sodium >= 800.0:
-        upf_score += 2
+        upf_score += NUTRITION_WARNING_POINTS["고나트륨 식품"]
         nutrition_warnings.append("고나트륨 식품")
     if saturated_fat >= 5.0:
-        upf_score += 1
+        upf_score += NUTRITION_WARNING_POINTS["고포화지방 식품"]
         nutrition_warnings.append("고포화지방 식품")
 
     # STEP 3: 최종 NOVA 등급 판정

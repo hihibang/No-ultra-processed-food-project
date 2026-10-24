@@ -1,6 +1,9 @@
 // 백엔드 API 공통 요청 함수
 export const API_BASE_URL = 'http://127.0.0.1:8000';
 
+// 토큰이 만료되었거나 유효하지 않을 때 발생. AuthProvider가 받아 로그아웃 처리한다.
+export const AUTH_EXPIRED_EVENT = 'auth:expired';
+
 export class ApiError extends Error {
   constructor(message, status) {
     super(message);
@@ -28,6 +31,9 @@ export async function apiRequest(path, { method = 'GET', body } = {}) {
   }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+    }
     const data = await response.json().catch(() => ({}));
     const detail = typeof data.detail === 'string' ? data.detail : '요청을 처리하지 못했습니다.';
     throw new ApiError(detail, response.status);

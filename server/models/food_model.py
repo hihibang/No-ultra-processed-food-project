@@ -56,3 +56,28 @@ class FoodModel:
 
         result = await session.execute(sql, params)
         return [dict(row._mapping) for row in result.fetchall()]
+
+    @staticmethod
+    async def get_recent_foods(session: AsyncSession, limit: int = 5) -> list:
+        # latest_date는 DATE(YYYY-MM-DD)와 change_date(YYYYMMDD)가 섞여 있으므로
+        # 하이픈을 제거한 문자열로 정렬해야 날짜 순서가 맞다
+        sql = text("""
+            SELECT
+                report_no,
+                product_name,
+                company_name,
+                product_type,
+                calories,
+                sugars,
+                sodium,
+                saturated_fat,
+                raw_materials,
+                image_url
+            FROM active_food_catalog
+            WHERE image_url IS NOT NULL AND image_url != ''
+            ORDER BY REPLACE(CAST(latest_date AS CHAR), '-', '') DESC, report_no DESC
+            LIMIT :limit
+        """)
+
+        result = await session.execute(sql, {"limit": limit})
+        return [dict(row._mapping) for row in result.fetchall()]

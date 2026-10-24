@@ -140,13 +140,6 @@ export const ItemName = styled.span`
   color: ${({ theme }) => theme.colors.textMain};
 `;
 
-export const ItemPrice = styled.span`
-  font-size: ${({ theme }) => theme.typography.fontSize.base};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.heavy};
-  color: ${({ theme }) => theme.colors.textMain};
-  margin-top: auto;
-`;
-
 export const ItemActions = styled.div`
   padding: 0 12px 12px 12px;
 `;
@@ -178,6 +171,14 @@ export const ComparisonCard = styled.li`
   border: 1px solid ${({ theme }) => theme.colors.borderColor};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   background: #fff;
+`;
+
+export const ComparisonCardHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 `;
 
 export const ComparisonDate = styled.time`

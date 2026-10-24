@@ -17,7 +17,7 @@ export const ModalOverlay = styled.div`
 export const ModalContainer = styled.div`
   position: relative; /* ✕ 버튼 배치의 기준점 */
   width: 100%;
-  max-width: 440px;
+  max-width: ${({ $maxWidth }) => $maxWidth ?? '440px'};
   background-color: #ffffff;
   border-radius: 20px;
   padding: 2.5rem 2rem 2rem;

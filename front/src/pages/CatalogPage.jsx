@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import MainContainer from '../components/Layout/MainContainer';
 import ProductCard from '../components/Common/ProductCard';
 import FilterSidebar from '../components/Common/FilterSidebar';
 import CompareToast from '../components/Common/CompareToast';
 import { useToast } from '../hooks/useToast';
 import { useCompare } from '../hooks/useCompare';
+import { toCatalogCardProduct } from '../utils/product';
 import { CATEGORY_OPTIONS } from '../data/CatalogPage.data';
 import {
   NOVA_GRADES,
@@ -26,11 +28,17 @@ import {
   ProductGrid,
 } from './styles/CatalogPage.styles';
 
+// URL 쿼리(category)를 카탈로그 카테고리 값으로 정규화 (허용되지 않은 값은 전체)
+const toCategory = (value) => (CATEGORY_OPTIONS.includes(value) ? value : '전체');
+
 function CatalogPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlCategory = searchParams.get('category');
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('전체');
+  const [activeCategory, setActiveCategory] = useState(() => toCategory(urlCategory));
   const [filterState, setFilterState] = useState({
     novaGrades: [],
     nutritionFilters: [],
@@ -87,10 +95,21 @@ function CatalogPage() {
     [searchQuery, activeCategory, filterState, showToast]
   );
 
+  // 같은 페이지에서 URL 쿼리만 바뀌는 경우(메인 카테고리 클릭 등)에도 반영
+  useEffect(() => {
+    setActiveCategory(toCategory(urlCategory));
+  }, [urlCategory]);
+
   // 카테고리 또는 필터 상태 변경 시 재호출
   useEffect(() => {
     fetchFoods(searchQuery, activeCategory, filterState);
   }, [activeCategory, filterState]);
+
+  // 카테고리 변경 시 상태와 URL을 함께 갱신 (새로고침/공유 시에도 같은 목록)
+  const changeCategory = (category) => {
+    setActiveCategory(category);
+    setSearchParams(category === '전체' ? {} : { category }, { replace: true });
+  };
 
   // 검색어 입력 핸들러
   const handleSearch = (query) => {
@@ -103,7 +122,7 @@ function CatalogPage() {
 
   // 카테고리 선택 핸들러
   const handleCategorySelect = (category) => {
-    setActiveCategory(category);
+    changeCategory(category);
     showToast(`'${category}' 카테고리를 선택했습니다.`, 'success', 1500);
   };
 
@@ -164,7 +183,7 @@ function CatalogPage() {
   // 상단 칩 삭제
   const handleRemoveChip = (chip) => {
     if (chip.type === 'category') {
-      setActiveCategory('전체');
+      changeCategory('전체');
     } else if (chip.type === 'nova') {
       setFilterState((prev) => ({
         ...prev,
@@ -185,7 +204,7 @@ function CatalogPage() {
 
   // 초기화 ↺
   const handleResetAll = () => {
-    setActiveCategory('전체');
+    changeCategory('전체');
     setSearchQuery('');
     setFilterState({
       novaGrades: [],
@@ -284,18 +303,7 @@ function CatalogPage() {
                   products.map((item) => (
                     <ProductCard
                       key={item.reportNo}
-                      product={{
-                        id: item.reportNo,
-                        name: item.productName,
-                        company: item.companyName,
-                        category: item.foodCategory,
-                        calories: item.calories,
-                        imageUrl: item.imageUrl, // 👈 💡 핵심: 백엔드의 HACCP 실물 이미지 바인딩!
-                        novaGrade: item.novaGroup,
-                        statusText: item.statusText,
-                        badgeColor: item.badgeColor,
-                        isUPF: item.isUPF,
-                      }}
+                      product={toCatalogCardProduct(item)}
                     />
                   ))
                 )}

@@ -23,3 +23,6 @@ env/
 .DS_Store
 Thumbs.db
 EOF
+
+# 데이터
+ai/data/

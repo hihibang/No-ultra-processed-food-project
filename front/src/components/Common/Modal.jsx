@@ -5,7 +5,7 @@ import {
   ModalCloseButton,
 } from './styles/Modal.styles'; // 스타일 파일 경로에 맞게 확인
 
-function Modal({ isOpen, onClose, children }) {
+function Modal({ isOpen, onClose, maxWidth, children }) {
   // ESC 키 누르면 닫기
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -27,7 +27,7 @@ function Modal({ isOpen, onClose, children }) {
   return (
     <ModalOverlay onClick={onClose}>
       {/* 모달 내부 클릭 시 닫히지 않도록 이벤트 전파 차단 */}
-      <ModalContainer onClick={(e) => e.stopPropagation()}>
+      <ModalContainer $maxWidth={maxWidth} onClick={(e) => e.stopPropagation()}>
         {/* 우측 상단 닫기 (✕) 버튼 */}
         <ModalCloseButton type="button" onClick={onClose} aria-label="닫기">
           ✕

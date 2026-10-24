@@ -5,6 +5,7 @@ import Button from '../components/Common/Button';
 import { useAuth } from '../hooks/useAuth';
 import { useCompare } from '../hooks/useCompare';
 import { useToast } from '../hooks/useToast';
+import ComparisonResultModal from './Comparison/ComparisonResultModal';
 import {
   Container,
   Header,
@@ -41,6 +42,8 @@ function ComparePage() {
   const { compareItems, removeFromCompare, clearCompare, runCompare } = useCompare();
   const { showToast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  // 비교 실행 응답(리포트 포함)을 보관하고, 같은 자리에서 결과 모달을 연다
+  const [savedResult, setSavedResult] = useState(null);
 
   const canCompare = compareItems.length >= MIN_COMPARE_COUNT;
 
@@ -52,8 +55,8 @@ function ComparePage() {
 
     setIsSaving(true);
     try {
-      await runCompare();
-      showToast('비교 기록을 저장했어요. 마이페이지에서 확인할 수 있어요.', 'success');
+      const result = await runCompare();
+      setSavedResult(result);
     } catch (error) {
       showToast(error.message, 'error');
     } finally {
@@ -150,6 +153,23 @@ function ComparePage() {
             </Button>
           </ButtonGroup>
         </ActionRow>
+
+        <ComparisonResultModal
+          isOpen={savedResult !== null}
+          onClose={() => setSavedResult(null)}
+          data={savedResult}
+          createdAtLabel={
+            savedResult?.created_at
+              ? new Date(savedResult.created_at).toLocaleString('ko-KR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : undefined
+          }
+        />
       </Container>
     </MainContainer>
   );

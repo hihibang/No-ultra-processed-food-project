@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../hooks/useCart';
 import { useToast } from '../hooks/useToast';
 import { comparisonApi } from '../api/comparisonApi';
+import ComparisonResultModal from './Comparison/ComparisonResultModal';
 import {
   APPLIANCE_OPTIONS,
   PREFERENCE_OPTIONS,
@@ -40,12 +41,12 @@ import {
   ItemBody,
   ItemBrand,
   ItemName,
-  ItemPrice,
   ItemActions,
   EmptyState,
   GuestNotice,
   ComparisonList,
   ComparisonCard,
+  ComparisonCardHeader,
   ComparisonDate,
   ComparisonFoods,
   ComparisonFood,
@@ -112,6 +113,7 @@ function MyPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [comparisonLogs, setComparisonLogs] = useState([]);
   const [isComparisonLoading, setIsComparisonLoading] = useState(false);
+  const [selectedComparison, setSelectedComparison] = useState(null);
 
   const isDirty = useMemo(
     () => JSON.stringify(form) !== JSON.stringify(savedProfile),
@@ -373,9 +375,21 @@ function MyPage() {
             const missingCount = log.product_ids.length - log.foods.length;
             return (
               <ComparisonCard key={log.comparison_id}>
-                <ComparisonDate dateTime={log.created_at}>
-                  {formatDateTime(log.created_at)}
-                </ComparisonDate>
+                <ComparisonCardHeader>
+                  <ComparisonDate dateTime={log.created_at}>
+                    {formatDateTime(log.created_at)}
+                  </ComparisonDate>
+                  <Button
+                    variant="line"
+                    size="sm"
+                    onClick={() => setSelectedComparison({
+                      id: log.comparison_id,
+                      createdAtLabel: formatDateTime(log.created_at),
+                    })}
+                  >
+                    결과 다시보기
+                  </Button>
+                </ComparisonCardHeader>
                 <ComparisonFoods>
                   {log.foods.map(food => (
                     <ComparisonFood key={food.reportNo}>
@@ -394,6 +408,12 @@ function MyPage() {
             );
           })}
         </ComparisonList>
+        <ComparisonResultModal
+          isOpen={selectedComparison !== null}
+          onClose={() => setSelectedComparison(null)}
+          comparisonId={selectedComparison?.id}
+          createdAtLabel={selectedComparison?.createdAtLabel}
+        />
       </Panel>
     );
   };
@@ -433,7 +453,6 @@ function MyPage() {
                     <ItemBrand>{item.brand ?? item.company ?? item.companyName}</ItemBrand>
                   )}
                   <ItemName>{item.name}</ItemName>
-                  <ItemPrice>{price > 0 ? `${price.toLocaleString('ko-KR')}원` : '가격 정보 없음'}</ItemPrice>
                 </ItemBody>
                 <ItemActions>
                   <Button variant="gray" size="sm" style={{ width: '100%' }} onClick={() => handleRemoveItem(item)}>

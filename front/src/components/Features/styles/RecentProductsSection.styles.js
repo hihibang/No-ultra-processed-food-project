@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import { containerMax } from '../../../styles/mixins';
 
-export const TimeDealSectionWrapper = styled.section`
+export const RecentWrapper = styled.section`
   ${containerMax}
   padding: 2.5rem 1.5rem;
 `;
@@ -34,25 +34,14 @@ export const SectionLabel = styled.span`
   margin-bottom: 8px;
 `;
 
-export const ViewAllButton = styled.button`
-  background-color: ${({ theme }) => theme.colors.bgGray};
-  color: ${({ theme }) => theme.colors.primary};
-  border: 1px solid ${({ theme }) => theme.colors.borderColor};
-  padding: 0.5rem 1rem;
-  border-radius: ${({ theme }) => theme.borderRadius.full};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.primary};
-    color: ${({ theme }) => theme.colors.white};
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
 export const ProductGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(5, minmax(220px, 1fr));
   gap: 1.5rem;
+`;
+
+export const Message = styled.p`
+  padding: 40px 0;
+  text-align: center;
+  color: ${({ theme }) => theme.colors.textSub};
 `;
