@@ -90,30 +90,6 @@ export const WishlistButton = styled.button`
   }
 `;
 
-export const CartButton = styled.button`
-  position: absolute;
-  bottom: 0.6rem;
-  right: 0.6rem;
-  width: 2.25rem;
-  height: 2.25rem;
-  background-color: ${({ theme }) => theme.colors.white};
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 1.1rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  z-index: 6;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.primary};
-    color: ${({ theme }) => theme.colors.white};
-  }
-`;
-
 export const CardInfo = styled.div`
   padding: 1rem;
   display: flex;

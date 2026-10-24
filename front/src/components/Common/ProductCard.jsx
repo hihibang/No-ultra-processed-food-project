@@ -2,13 +2,13 @@ import React from 'react';
 import { useCart } from '../../hooks/useCart';
 import { useCompare } from '../../hooks/useCompare';
 import { useToast } from '../../hooks/useToast';
+import { useWishlistToggle } from '../../hooks/useWishlistToggle';
 import { getIcon } from '../../constants/icons';
 import {
   CardWrapper,
   ImageWrapper,
   Badge,
   WishlistButton,
-  CartButton,
   CardInfo,
   IngredientTags,
   IngredientTag,
@@ -30,9 +30,10 @@ const getMainCategory = (subType) => {
 };
 
 function ProductCard({ product, onClick }) {
-  const { addToCart, toggleWishlist, isInWishlist } = useCart();
+  const { isInWishlist } = useCart();
   const { addToCompare, isInCompare } = useCompare();
   const { showToast } = useToast();
+  const toggleWishlist = useWishlistToggle();
 
   if (!product) return null;
 
@@ -51,21 +52,9 @@ function ProductCard({ product, onClick }) {
   const mainCategory = getMainCategory(category);
   const inWishlist = isInWishlist(id);
 
-  const handleAddToCart = (e) => {
-    e.stopPropagation();
-    addToCart({ ...product, id, name, price });
-    showToast(`${name}이(가) 장바구니에 추가되었습니다.`, 'success');
-  };
-
   const handleToggleWishlist = (e) => {
     e.stopPropagation();
     toggleWishlist({ ...product, id, name });
-    showToast(
-      inWishlist
-        ? `${name}이(가) 위시리스트에서 제거되었습니다.`
-        : `${name}이(가) 위시리스트에 추가되었습니다.`,
-      'success'
-    );
   };
 
   const handleAddToCompare = (e) => {
@@ -94,9 +83,6 @@ function ProductCard({ product, onClick }) {
         <WishlistButton onClick={handleToggleWishlist} $isWished={inWishlist}>
           {getIcon('heart')}
         </WishlistButton>
-        <CartButton onClick={handleAddToCart}>
-          {getIcon('shoppingBag')}
-        </CartButton>
       </ImageWrapper>
 
       <CardInfo>

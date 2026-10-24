@@ -5,6 +5,7 @@ import Button from '../components/Common/Button';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../hooks/useCart';
 import { useToast } from '../hooks/useToast';
+import { comparisonApi } from '../api/comparisonApi';
 import {
   APPLIANCE_OPTIONS,
   PREFERENCE_OPTIONS,
@@ -43,6 +44,14 @@ import {
   ItemActions,
   EmptyState,
   GuestNotice,
+  ComparisonList,
+  ComparisonCard,
+  ComparisonDate,
+  ComparisonFoods,
+  ComparisonFood,
+  FoodThumb,
+  FoodName,
+  MissingNote,
 } from './styles/MyPage.styles';
 
 const API_BASE_URL = 'http://127.0.0.1:8000';
@@ -50,6 +59,7 @@ const SUMMARY_LIMIT = 3;
 const TABS = [
   { key: 'profile', label: '개인화 설정' },
   { key: 'wishlist', label: '위시리스트 관리' },
+  { key: 'comparisons', label: '비교 히스토리' },
 ];
 
 const LEVEL_LABEL = Object.fromEntries(COOKING_LEVEL_OPTIONS.map(opt => [opt.value, opt.label]));
@@ -61,6 +71,15 @@ const toFormState = (user) => ({
   preferences: user?.preferences ?? [],
   cooking_level: user?.cooking_level ?? 'beginner',
 });
+
+const formatDateTime = (value) =>
+  new Date(value).toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
 // 칩 요약: 일부만 보여주고 나머지는 "외 n개"로 표시
 function SummaryTags({ items, emptyText }) {
@@ -91,6 +110,8 @@ function MyPage() {
   const [form, setForm] = useState(() => toFormState(user));
   const [nameError, setNameError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [comparisonLogs, setComparisonLogs] = useState([]);
+  const [isComparisonLoading, setIsComparisonLoading] = useState(false);
 
   const isDirty = useMemo(
     () => JSON.stringify(form) !== JSON.stringify(savedProfile),
@@ -127,6 +148,16 @@ function MyPage() {
     // 로그인 상태가 바뀔 때만 다시 조회
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn]);
+
+  // 비교 히스토리 탭을 열 때마다 서버에서 최신 기록 조회
+  useEffect(() => {
+    if (!isLoggedIn || activeTab !== 'comparisons') return;
+    setIsComparisonLoading(true);
+    comparisonApi.list()
+      .then(setComparisonLogs)
+      .catch((error) => showToast(error.message, 'error'))
+      .finally(() => setIsComparisonLoading(false));
+  }, [isLoggedIn, activeTab, showToast]);
 
   const handleTabChange = (key) => {
     setSearchParams({ tab: key });
@@ -204,15 +235,23 @@ function MyPage() {
     setNameError('');
   };
 
-  const handleRemoveItem = (item) => {
-    removeFromWishlist(item.id);
-    showToast(`${item.name}이(가) 위시리스트에서 제거되었습니다.`, 'success');
+  const handleRemoveItem = async (item) => {
+    try {
+      await removeFromWishlist(item.id);
+      showToast(`${item.name}이(가) 위시리스트에서 제거되었습니다.`, 'success');
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
   };
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     if (!window.confirm('위시리스트를 모두 비울까요?')) return;
-    clearWishlist();
-    showToast('위시리스트를 모두 비웠습니다.', 'success');
+    try {
+      await clearWishlist();
+      showToast('위시리스트를 모두 비웠습니다.', 'success');
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
   };
 
   if (!isLoggedIn) {
@@ -307,6 +346,58 @@ function MyPage() {
     </Panel>
   );
 
+  const renderComparisonTab = () => {
+    if (isComparisonLoading) {
+      return (
+        <EmptyState>
+          <span>비교 기록을 불러오는 중입니다...</span>
+        </EmptyState>
+      );
+    }
+
+    if (comparisonLogs.length === 0) {
+      return (
+        <EmptyState>
+          <span>저장된 비교 기록이 없습니다. 비교함에서 상품을 비교해 보세요.</span>
+          <Button variant="primary" size="md" onClick={() => navigate('/compare')}>
+            비교함으로 이동
+          </Button>
+        </EmptyState>
+      );
+    }
+
+    return (
+      <Panel>
+        <ComparisonList>
+          {comparisonLogs.map(log => {
+            const missingCount = log.product_ids.length - log.foods.length;
+            return (
+              <ComparisonCard key={log.comparison_id}>
+                <ComparisonDate dateTime={log.created_at}>
+                  {formatDateTime(log.created_at)}
+                </ComparisonDate>
+                <ComparisonFoods>
+                  {log.foods.map(food => (
+                    <ComparisonFood key={food.reportNo}>
+                      <FoodThumb
+                        src={food.imageUrl ?? '/images/div.relative.png'}
+                        alt={food.productName}
+                      />
+                      <FoodName title={food.productName}>{food.productName}</FoodName>
+                    </ComparisonFood>
+                  ))}
+                  {missingCount > 0 && (
+                    <MissingNote>삭제된 상품 {missingCount}개</MissingNote>
+                  )}
+                </ComparisonFoods>
+              </ComparisonCard>
+            );
+          })}
+        </ComparisonList>
+      </Panel>
+    );
+  };
+
   const renderWishlistTab = () => {
     if (wishlist.length === 0) {
       return (
@@ -397,7 +488,9 @@ function MyPage() {
           ))}
         </TabBar>
 
-        {activeTab === 'profile' ? renderProfileTab() : renderWishlistTab()}
+        {activeTab === 'profile' && renderProfileTab()}
+        {activeTab === 'wishlist' && renderWishlistTab()}
+        {activeTab === 'comparisons' && renderComparisonTab()}
       </Container>
     </MainContainer>
   );

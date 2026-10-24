@@ -171,30 +171,6 @@ export const ActionButtons = styled.div`
   align-items: center;
 `;
 
-export const AddToCartButton = styled.button`
-  flex: 1;
-  background: #1a73e8;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  &:hover {
-    background: #1557b0;
-  }
-`;
-
 export const WishlistButton = styled.button`
   width: 48px;
   height: 48px;

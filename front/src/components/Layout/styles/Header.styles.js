@@ -170,6 +170,16 @@ export const WishlistButton = styled.button`
   }
 `;
 
+export const CompareButton = styled(WishlistButton)`
+  width: auto;
+  height: 2.4rem;
+  padding: 0 12px;
+  border-radius: ${({ theme }) => theme.borderRadius.full};
+  font-size: ${({ theme }) => theme.typography.fontSize.base};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
+  color: ${({ theme }) => theme.colors.textMain};
+`;
+
 export const CounterBadge = styled.span`
   position: absolute;
   top: -2px;

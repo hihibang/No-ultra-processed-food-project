@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
+import { useCompare } from '../../hooks/useCompare';
 import { useViewMode } from '../../hooks/useViewMode';
 import { getIcon } from '../../constants/icons';
 import SearchBox from '../Common/SearchBox';
@@ -25,15 +26,20 @@ import {
   AuthGroup,
   UserBadge,
   WishlistButton,
+  CompareButton,
   CounterBadge,
 } from './styles/Header.styles';
 
 function Header({ onSearch }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   // user 객체 또는 userName 둘 다 안전하게 대응
   const { isLoggedIn, user, userName, logout } = useAuth();
   const { wishlistCount } = useCart();
+  const { compareCount } = useCompare();
   const { viewMode, switchView } = useViewMode();
+  // AI 챗봇 페이지는 URL 기준으로 active 처리 (직접 접속/뒤로가기 시에도 표시되도록)
+  const activeMode = pathname === '/ai-chat' ? 'chat' : viewMode;
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('login');
 
@@ -42,10 +48,10 @@ function Header({ onSearch }) {
     typeof user === 'object' && user?.name
       ? user.name
       : typeof userName === 'string'
-      ? userName
-      : typeof user === 'string'
-      ? user
-      : '사용자';
+        ? userName
+        : typeof user === 'string'
+          ? user
+          : '사용자';
 
   const handleViewChange = (mode) => {
     switchView(mode);
@@ -110,19 +116,19 @@ function Header({ onSearch }) {
 
           <ViewSwitchPill>
             <SwitchButton
-              className={viewMode === 'home' ? 'active' : ''}
+              className={activeMode === 'home' ? 'active' : ''}
               onClick={() => handleViewChange('home')}
             >
               홈
             </SwitchButton>
             <SwitchButton
-              className={viewMode === 'chat' ? 'active' : ''}
+              className={activeMode === 'chat' ? 'active' : ''}
               onClick={() => handleViewChange('chat')}
             >
               AI 챗봇
             </SwitchButton>
             <SwitchButton
-              className={viewMode === 'catalog' ? 'active' : ''}
+              className={activeMode === 'catalog' ? 'active' : ''}
               onClick={() => handleViewChange('catalog')}
             >
               상품 목록
@@ -150,15 +156,22 @@ function Header({ onSearch }) {
                 <UserBadge onClick={() => navigate('/mypage')}>
                   {displayName} 님
                 </UserBadge>
-                <Button variant="line" size="sm" onClick={() => navigate('/mypage')}>
-                  마이페이지
-                </Button>
                 <Button variant="gray" size="sm" onClick={handleLogout}>
                   로그아웃
+                </Button>
+                <Button variant="line" size="sm" onClick={() => navigate('/mypage')}>
+                  마이페이지
                 </Button>
               </>
             )}
           </AuthGroup>
+
+          <CompareButton onClick={() => navigate('/compare')} title="비교함">
+            비교함
+            {compareCount > 0 && (
+              <CounterBadge>{compareCount}</CounterBadge>
+            )}
+          </CompareButton>
 
           <WishlistButton onClick={() => navigate('/wishlist')} title="위시리스트">
             <span>{getIcon('heart')}</span>

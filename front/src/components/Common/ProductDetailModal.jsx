@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import { useCart } from '../../hooks/useCart';
-import { useToast } from '../../hooks/useToast';
+import { useWishlistToggle } from '../../hooks/useWishlistToggle';
+import { getProductId } from '../../utils/product';
 import { getIcon } from '../../constants/icons';
 import NovaAnalysisChip from './NovaAnalysisChip';
 import ComparisonTable from './ComparisonTable';
@@ -23,34 +23,20 @@ import {
   BadgesRow,
   Badge,
   ActionButtons,
-  AddToCartButton,
   WishlistButton,
   IngredientsList,
   ComparisonSection,
 } from './styles/ProductDetailModal.styles';
 
 function ProductDetailModal({ product, isOpen, onClose }) {
-  const { addToCart, toggleWishlist, isInWishlist } = useCart();
-  const { showToast } = useToast();
-  const [quantity, setQuantity] = useState(1);
+  const { isInWishlist } = useCart();
+  const toggleWishlist = useWishlistToggle();
 
-  const inWishlist = isInWishlist(product?.id);
-
-  const handleAddToCart = () => {
-    if (!product) return;
-    addToCart({ ...product, quantity });
-    showToast(`${product.name}이(가) 장바구니에 추가되었습니다.`, 'success');
-  };
+  const inWishlist = isInWishlist(getProductId(product));
 
   const handleToggleWishlist = () => {
     if (!product) return;
     toggleWishlist(product);
-    showToast(
-      inWishlist
-        ? `${product.name}이(가) 위시리스트에서 제거되었습니다.`
-        : `${product.name}이(가) 위시리스트에 추가되었습니다.`,
-      'success'
-    );
   };
 
   if (!isOpen || !product) return null;
@@ -118,38 +104,6 @@ function ProductDetailModal({ product, isOpen, onClose }) {
             )}
 
             <ActionButtons>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '4px' }}
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  style={{
-                    width: '50px',
-                    padding: '8px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    textAlign: 'center',
-                  }}
-                />
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '4px' }}
-                >
-                  +
-                </button>
-              </div>
-
-              <AddToCartButton onClick={handleAddToCart}>
-                {getIcon('shoppingBag')}
-                장바구니 추가
-              </AddToCartButton>
-
               <WishlistButton onClick={handleToggleWishlist} $isWished={inWishlist}>
                 {getIcon('heart')}
               </WishlistButton>
