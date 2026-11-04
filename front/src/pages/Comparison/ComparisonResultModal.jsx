@@ -28,6 +28,7 @@ const NUTRITION_ROWS = [
   { key: 'sugars', label: '당류', unit: 'g', higherIsBetter: false },
   { key: 'sodium', label: '나트륨', unit: 'mg', higherIsBetter: false },
   { key: 'saturatedFat', label: '포화지방', unit: 'g', higherIsBetter: false },
+  { key: 'carbohydrate', label: '탄수화물', unit: 'g', higherIsBetter: false },
   { key: 'protein', label: '단백질', unit: 'g', higherIsBetter: true },
 ];
 

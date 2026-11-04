@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+
+// 2개 이상 담겼을 때는 '비교함으로 가기' 버튼을 눌 시간을 주기 위해 최소 표시 시간을 늘린다
+const COMPARE_ACTION_MIN_DURATION = 5000;
 
 const CompareToastWrapper = styled.div`
   position: fixed;
@@ -82,6 +86,23 @@ const ToastCount = styled.div`
   white-space: nowrap;
 `;
 
+const ToastActionButton = styled.button`
+  background: white;
+  color: #059669;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
 const CloseButton = styled.button`
   background: none;
   border: none;
@@ -108,6 +129,11 @@ function CompareToast({
   duration = 3000
 }) {
   const [isClosing, setIsClosing] = useState(false);
+  const navigate = useNavigate();
+  const canGoToCompare = compareCount >= 2;
+  const effectiveDuration = canGoToCompare
+    ? Math.max(duration, COMPARE_ACTION_MIN_DURATION)
+    : duration;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -118,12 +144,17 @@ function CompareToast({
         onClose();
         setIsClosing(false);
       }, 300);
-    }, duration);
+    }, effectiveDuration);
 
     return () => clearTimeout(timer);
-  }, [isOpen, duration, onClose]);
+  }, [isOpen, effectiveDuration, onClose]);
 
   if (!isOpen) return null;
+
+  const handleGoToCompare = () => {
+    onClose();
+    navigate('/compare');
+  };
 
   return (
     <CompareToastWrapper className={isClosing ? 'closing' : ''}>
@@ -133,6 +164,11 @@ function CompareToast({
         <ToastMessage>{productName}</ToastMessage>
       </ToastContent>
       <ToastCount>{compareCount}개</ToastCount>
+      {canGoToCompare && (
+        <ToastActionButton type="button" onClick={handleGoToCompare}>
+          비교함으로 가기
+        </ToastActionButton>
+      )}
       <CloseButton onClick={() => onClose()}>×</CloseButton>
     </CompareToastWrapper>
   );

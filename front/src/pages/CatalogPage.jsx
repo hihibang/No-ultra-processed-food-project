@@ -31,6 +31,16 @@ import {
 // URL 쿼리(category)를 카탈로그 카테고리 값으로 정규화 (허용되지 않은 값은 전체)
 const toCategory = (value) => (CATEGORY_OPTIONS.includes(value) ? value : '전체');
 
+// report_no(reportNo) 기준으로 같은 상품이 두 번 노출되지 않도록 중복 제거
+const uniqueByReportNo = (items) => {
+  const seen = new Set();
+  return items.filter((item) => {
+    if (seen.has(item.reportNo)) return false;
+    seen.add(item.reportNo);
+    return true;
+  });
+};
+
 function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlCategory = searchParams.get('category');
@@ -84,7 +94,7 @@ function CatalogPage() {
         }
 
         const result = await response.json();
-        setProducts(result.data || []);
+        setProducts(uniqueByReportNo(result.data || []));
       } catch (error) {
         console.error('API Fetch Error:', error);
         showToast('식품 목록을 불러오는 중 오류가 발생했습니다.', 'error');

@@ -57,6 +57,8 @@ function ComparePage() {
     try {
       const result = await runCompare();
       setSavedResult(result);
+      // 비교 저장 성공 후 비교함 비우기 (결과 모달은 savedResult로 열려 있음)
+      clearCompare();
     } catch (error) {
       showToast(error.message, 'error');
     } finally {
@@ -75,6 +77,27 @@ function ComparePage() {
     showToast('비교함을 모두 비웠습니다.', 'success');
   };
 
+  // 결과 모달은 비교함 상태(compareItems)와 무관하게 savedResult로만 열리도록
+  // 빈 상태/일반 화면 양쪽에서 렌더링한다 (비교 실행 후 비교함이 비워져도 모달 유지)
+  const resultModal = (
+    <ComparisonResultModal
+      isOpen={savedResult !== null}
+      onClose={() => setSavedResult(null)}
+      data={savedResult}
+      createdAtLabel={
+        savedResult?.created_at
+          ? new Date(savedResult.created_at).toLocaleString('ko-KR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : undefined
+      }
+    />
+  );
+
   if (compareItems.length === 0) {
     return (
       <MainContainer>
@@ -89,6 +112,7 @@ function ComparePage() {
             </Button>
           </EmptyState>
         </Container>
+        {resultModal}
       </MainContainer>
     );
   }
@@ -154,23 +178,8 @@ function ComparePage() {
           </ButtonGroup>
         </ActionRow>
 
-        <ComparisonResultModal
-          isOpen={savedResult !== null}
-          onClose={() => setSavedResult(null)}
-          data={savedResult}
-          createdAtLabel={
-            savedResult?.created_at
-              ? new Date(savedResult.created_at).toLocaleString('ko-KR', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })
-              : undefined
-          }
-        />
       </Container>
+      {resultModal}
     </MainContainer>
   );
 }
