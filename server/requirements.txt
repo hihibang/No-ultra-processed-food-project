@@ -11,3 +11,4 @@ ollama
 bcrypt
 email-validator
 pyjwt
+httpx

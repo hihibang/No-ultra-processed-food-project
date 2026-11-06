@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import Button from '../Common/Button';
+import QuickActionBar from './QuickActionBar';
 import {
   Bubble,
   BubbleMeta,
@@ -7,6 +9,7 @@ import {
   ErrorBanner,
   InputBar,
   KindTag,
+  MarkdownBody,
   MessageArea,
   TextArea,
   WelcomeBox,
@@ -14,8 +17,17 @@ import {
 
 const KIND_LABEL = { recipe: '레시피 추천', followup: '후속 질문' };
 
-// 대화 출력 영역 + 입력창
-function ChatWindow({ messages, isLoading, error, input, onInputChange, onSend }) {
+// 대화 출력 영역 + 퀵 액션 + 입력창
+function ChatWindow({
+  messages,
+  isLoading,
+  error,
+  input,
+  inputRef,
+  onInputChange,
+  onSend,
+  quickActions,
+}) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -46,10 +58,30 @@ function ChatWindow({ messages, isLoading, error, input, onInputChange, onSend }
             <BubbleMeta>
               {message.role === 'user' ? '나' : 'AI'}
               {message.kind && <KindTag>{KIND_LABEL[message.kind]}</KindTag>}
+              {message.candidateIndex != null && (
+                <KindTag>후보 {message.candidateIndex + 1}번</KindTag>
+              )}
             </BubbleMeta>
-            {message.content}
+            {message.role === 'assistant' ? (
+              <MarkdownBody>
+                <ReactMarkdown>{message.content}</ReactMarkdown>
+              </MarkdownBody>
+            ) : (
+              message.content
+            )}
           </Bubble>
         ))}
+
+        {quickActions && !isLoading && (
+          <QuickActionBar
+            candidates={quickActions.candidates}
+            currentIndex={quickActions.currentIndex}
+            onAskDetail={quickActions.onAskDetail}
+            onShowCandidate={quickActions.onShowCandidate}
+            onNewSearch={quickActions.onNewSearch}
+            disabled={isLoading}
+          />
+        )}
 
         {isLoading && (
           <Bubble $role="assistant">
@@ -64,6 +96,7 @@ function ChatWindow({ messages, isLoading, error, input, onInputChange, onSend }
 
       <InputBar>
         <TextArea
+          ref={inputRef}
           rows={2}
           value={input}
           disabled={isLoading}

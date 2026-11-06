@@ -31,9 +31,10 @@ export const PageDesc = styled.p`
   color: ${({ theme }) => theme.colors.textSub};
 `;
 
+// 왼쪽: 대화 창 / 오른쪽: 내 취향 설정 · 대화 기록 사이드바
 export const Layout = styled.div`
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 300px;
   gap: 1.5rem;
   align-items: start;
 
@@ -222,12 +223,110 @@ export const Bubble = styled.div`
   border-radius: 16px;
   font-size: 0.92rem;
   line-height: 1.65;
-  white-space: pre-wrap;
   word-break: keep-all;
+  white-space: ${({ $role }) => ($role === 'user' ? 'pre-wrap' : 'normal')};
   background: ${({ $role, theme }) => ($role === 'user' ? theme.colors.primary : theme.colors.white)};
   color: ${({ $role, theme }) => ($role === 'user' ? theme.colors.white : theme.colors.textMain)};
   border: ${({ $role, theme }) => ($role === 'user' ? 'none' : `1px solid ${theme.colors.borderColor}`)};
   box-shadow: ${({ theme }) => theme.shadows.light};
+  min-width: 0;
+`;
+
+// AI 답변 마크다운 스타일 (재료/조리 순서가 한눈에 보이도록)
+export const MarkdownBody = styled.div`
+  color: ${({ theme }) => theme.colors.textMain};
+
+  h1, h2, h3, h4 {
+    margin: 0.9rem 0 0.4rem;
+    font-size: 1rem;
+    font-weight: 800;
+    color: ${({ theme }) => theme.colors.primaryHover};
+    line-height: 1.4;
+  }
+
+  h1:first-child, h2:first-child, h3:first-child, h4:first-child,
+  p:first-child, ul:first-child, ol:first-child {
+    margin-top: 0;
+  }
+
+  p {
+    margin: 0.4rem 0;
+  }
+
+  ul, ol {
+    margin: 0.3rem 0;
+    padding-left: 1.3rem;
+  }
+
+  li {
+    margin: 0.2rem 0;
+  }
+
+  li > ul, li > ol {
+    margin: 0.15rem 0;
+  }
+
+  strong {
+    font-weight: 800;
+    color: ${({ theme }) => theme.colors.textMain};
+  }
+
+  code {
+    padding: 0.05rem 0.3rem;
+    border-radius: 4px;
+    background: ${({ theme }) => theme.colors.bgGray};
+    font-size: 0.85em;
+  }
+
+  blockquote {
+    margin: 0.5rem 0;
+    padding: 0.4rem 0.8rem;
+    border-left: 3px solid ${({ theme }) => theme.colors.accentYellow};
+    background: #fffbeb;
+    color: ${({ theme }) => theme.colors.textSub};
+  }
+`;
+
+export const QuickActions = styled.div`
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: -0.25rem;
+`;
+
+export const QuickActionLabel = styled.span`
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textMuted};
+`;
+
+export const QuickActionRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+`;
+
+export const QuickActionButton = styled.button`
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+  background: #fff;
+  color: ${({ theme }) => theme.colors.primary};
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: #ecfdf3;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 export const BubbleMeta = styled.div`

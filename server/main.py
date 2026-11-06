@@ -4,6 +4,7 @@ from routes.food_routes import router as food_router
 from routes.auth_routes import router as auth_router
 from routes.wishlist_routes import router as wishlist_router
 from routes.comparison_routes import router as comparison_router
+from routes.chat_routes import router as chat_router
 
 app = FastAPI(
     title="UPF Identifier API",
@@ -25,6 +26,7 @@ app.include_router(food_router)
 app.include_router(auth_router)
 app.include_router(wishlist_router)
 app.include_router(comparison_router)
+app.include_router(chat_router)
 
 @app.get("/")
 async def root():
