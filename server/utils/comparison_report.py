@@ -14,7 +14,7 @@ def build_comparison_item(row) -> dict:
     """active_food_catalog 한 행을 비교 리포트 항목으로 변환한다."""
     food = dict(row)
     classified = classify_food(food)
-    health = calculate_health_score(classified)
+    health = calculate_health_score(classified, food)
 
     return {
         "reportNo": str(food["report_no"]),
@@ -29,6 +29,7 @@ def build_comparison_item(row) -> dict:
             "novaDeduction": health["novaDeduction"],
             "upfDeduction": health["upfDeduction"],
             "nutritionDeduction": health["nutritionDeduction"],
+            "carbohydrateDeduction": health["carbohydrateDeduction"],
             "appliedWarnings": health["appliedWarnings"],
         },
         "nutrition": {

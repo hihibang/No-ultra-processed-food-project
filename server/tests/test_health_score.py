@@ -64,6 +64,21 @@ class CalculateHealthScoreTest(unittest.TestCase):
         self.assertEqual(result["nutritionDeduction"], 10)
         self.assertEqual(result["score"], 75)
 
+    def test_carbohydrate_deduction_by_threshold(self):
+        cases = [(49.9, 0), (50, 5), (79.9, 5), (80, 10), (150, 10)]
+        for carbohydrate, expected in cases:
+            with self.subTest(carbohydrate=carbohydrate):
+                result = calculate_health_score(_classified(nova=1), {"carbohydrate": carbohydrate})
+                self.assertEqual(result["carbohydrateDeduction"], expected)
+                self.assertEqual(result["score"], 100 - expected)
+
+    def test_carbohydrate_is_ignored_without_nutrition(self):
+        result = calculate_health_score(_classified(nova=1))
+        self.assertEqual(result["carbohydrateDeduction"], 0)
+        self.assertEqual(
+            calculate_health_score(_classified(nova=1), {"carbohydrate": None})["carbohydrateDeduction"], 0
+        )
+
     def test_score_is_clamped_to_zero(self):
         # 마커 10점(-50) + 영양경고 3개(-25) + NOVA 4(-45) = -120 → 0
         result = calculate_health_score(_classified(

@@ -110,23 +110,76 @@ export const NovaChip = styled.span`
   font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
 `;
 
-export const BreakdownList = styled.ul`
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  text-align: left;
+export const TitleRow = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px 0;
+  padding-right: 32px;
+
+  h2 {
+    margin: 0;
+    padding-right: 0;
+  }
 `;
 
-export const BreakdownItem = styled.li`
-  color: ${({ theme }) => theme.colors.textSub};
-`;
-
-export const DetailText = styled.span`
-  display: block;
-  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+export const InfoButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
   color: ${({ theme }) => theme.colors.textMuted};
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.textMain};
+    background: ${({ theme }) => theme.colors.bgGray};
+  }
+`;
+
+export const CriteriaPanel = styled.section`
+  background: ${({ theme }) => theme.colors.bgGray};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  padding: 14px 16px;
+  margin: 0;
+  max-height: 65vh;
+  overflow-y: auto;
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textSub};
+  line-height: 1.6;
+
+  h3 {
+    margin: 12px 0 4px;
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    color: ${({ theme }) => theme.colors.textMain};
+  }
+
+  h3:first-child {
+    margin-top: 0;
+  }
+
+  p {
+    margin: 0 0 4px;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+`;
+
+export const CriteriaFormula = styled.p`
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textMain};
 `;

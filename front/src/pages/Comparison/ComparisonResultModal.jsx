@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import Modal from '../../components/Common/Modal';
 import { useToast } from '../../hooks/useToast';
 import { comparisonApi } from '../../api/comparisonApi';
+import ScoreCriteriaPanel from './ScoreCriteriaPanel';
 import {
+  TitleRow,
+  InfoButton,
   ModalTitle,
   ModalMeta,
   Notice,
@@ -17,10 +20,29 @@ import {
   ItemCompany,
   ScoreBadge,
   NovaChip,
-  BreakdownList,
-  BreakdownItem,
-  DetailText,
 } from './styles/ComparisonResultModal.styles';
+
+// 점수 산정 기준 안내 아이콘 (info circle)
+function InfoIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4" />
+      <path d="M12 8h.01" />
+    </svg>
+  );
+}
 
 // higherIsBetter: 값이 클수록 좋은 항목인지 여부
 const NUTRITION_ROWS = [
@@ -55,6 +77,12 @@ function ComparisonResultModal({ isOpen, onClose, comparisonId, data, createdAtL
   const [detail, setDetail] = useState(null);
   const [status, setStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [showCriteria, setShowCriteria] = useState(false);
+
+  // 결과 모달을 닫으면 기준 팝업도 닫는다
+  useEffect(() => {
+    if (!isOpen) setShowCriteria(false);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -96,8 +124,20 @@ function ComparisonResultModal({ isOpen, onClose, comparisonId, data, createdAtL
   const items = detail?.report?.items ?? [];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="960px">
-      <ModalTitle>비교 결과</ModalTitle>
+    <>
+    <Modal isOpen={isOpen} onClose={showCriteria ? () => {} : onClose} maxWidth="960px">
+      <TitleRow>
+        <ModalTitle>비교 결과</ModalTitle>
+        <InfoButton
+          type="button"
+          aria-label="건강 점수 산정 기준 보기"
+          aria-haspopup="dialog"
+          title="점수 산정 기준 보기"
+          onClick={() => setShowCriteria(true)}
+        >
+          <InfoIcon />
+        </InfoButton>
+      </TitleRow>
       {createdAtLabel && <ModalMeta>{createdAtLabel} 비교</ModalMeta>}
 
       {status === 'loading' && <Message>결과를 분석 및 불러오는 중입니다...</Message>}
@@ -150,34 +190,6 @@ function ComparisonResultModal({ isOpen, onClose, comparisonId, data, createdAtL
                   ))}
                 </tr>
 
-                <tr>
-                  <RowLabel>감점 내역</RowLabel>
-                  {items.map((item, idx) => {
-                    const breakdown = item.scoreBreakdown || {};
-                    const detectedMarkers = item.detectedMarkers || [];
-                    const appliedWarnings = breakdown.appliedWarnings || [];
-
-                    return (
-                      <Td key={item.reportNo || idx}>
-                        <BreakdownList>
-                          <BreakdownItem>NOVA −{breakdown.novaDeduction ?? 0}</BreakdownItem>
-                          <BreakdownItem>
-                            UPF 마커 −{breakdown.upfDeduction ?? 0}
-                            {detectedMarkers.length > 0 && (
-                              <DetailText>{detectedMarkers.join(', ')}</DetailText>
-                            )}
-                          </BreakdownItem>
-                          <BreakdownItem>
-                            영양 경고 −{breakdown.nutritionDeduction ?? 0}
-                            {appliedWarnings.length > 0 && (
-                              <DetailText>{appliedWarnings.join(', ')}</DetailText>
-                            )}
-                          </BreakdownItem>
-                        </BreakdownList>
-                      </Td>
-                    );
-                  })}
-                </tr>
 
                 {NUTRITION_ROWS.map((row) => {
                   const bestIndexes = getBestIndexes(items, row.key, row.higherIsBetter);
@@ -203,6 +215,13 @@ function ComparisonResultModal({ isOpen, onClose, comparisonId, data, createdAtL
         <Message>비교할 상품 정보가 존재하지 않습니다.</Message>
       )}
     </Modal>
+
+    {/* 점수 산정 기준 팝업: 결과 모달 위에 겹쳐 표시 (ESC/바깥 클릭/✕로 팝업만 닫힘) */}
+    <Modal isOpen={isOpen && showCriteria} onClose={() => setShowCriteria(false)} maxWidth="560px">
+      <ModalTitle>건강 점수 산정 기준</ModalTitle>
+      <ScoreCriteriaPanel />
+    </Modal>
+    </>
   );
 }
 
