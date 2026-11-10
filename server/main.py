@@ -5,6 +5,8 @@ from routes.auth_routes import router as auth_router
 from routes.wishlist_routes import router as wishlist_router
 from routes.comparison_routes import router as comparison_router
 from routes.chat_routes import router as chat_router
+from routes.chat_session_routes import router as chat_session_router
+from routes.mypage_routes import router as mypage_router
 
 app = FastAPI(
     title="UPF Identifier API",
@@ -27,6 +29,8 @@ app.include_router(auth_router)
 app.include_router(wishlist_router)
 app.include_router(comparison_router)
 app.include_router(chat_router)
+app.include_router(chat_session_router)
+app.include_router(mypage_router)
 
 @app.get("/")
 async def root():

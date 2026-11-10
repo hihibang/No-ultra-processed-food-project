@@ -15,7 +15,9 @@ import {
   WelcomeBox,
 } from './styles/Chatbot.styles';
 
+// 답변 종류별 라벨. kind가 없는 어시스턴트 메시지는 '안내'로 통일한다.
 const KIND_LABEL = { recipe: '레시피 추천', followup: '후속 질문' };
+const GUIDE_LABEL = '안내';
 
 // 대화 출력 영역 + 퀵 액션 + 입력창
 function ChatWindow({
@@ -57,7 +59,8 @@ function ChatWindow({
           <Bubble key={message.id} $role={message.role}>
             <BubbleMeta>
               {message.role === 'user' ? '나' : 'AI'}
-              {message.kind && <KindTag>{KIND_LABEL[message.kind]}</KindTag>}
+              {message.role === 'user' && message.kind && <KindTag>{KIND_LABEL[message.kind]}</KindTag>}
+              {message.role === 'assistant' && <KindTag>{KIND_LABEL[message.kind] ?? GUIDE_LABEL}</KindTag>}
               {message.candidateIndex != null && (
                 <KindTag>후보 {message.candidateIndex + 1}번</KindTag>
               )}
@@ -78,6 +81,9 @@ function ChatWindow({
             currentIndex={quickActions.currentIndex}
             onAskDetail={quickActions.onAskDetail}
             onShowCandidate={quickActions.onShowCandidate}
+            onRegenerate={quickActions.onRegenerate}
+            onSaveRecipe={quickActions.onSaveRecipe}
+            isSaved={quickActions.isSaved}
             onNewSearch={quickActions.onNewSearch}
             disabled={isLoading}
           />

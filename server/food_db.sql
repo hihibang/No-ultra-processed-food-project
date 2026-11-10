@@ -9,8 +9,63 @@ show full tables;
 desc food_nutrition; -- 테이블 & 뷰 컬럼 구조 확인
 select * from food_additive_standard where additive_category = "향미증진제";
 select * from recipe where menu_name like "%스프%";
-describe users;
-select * from food_commerce_catalog;
+DESCRIBE users;
+select * from recipe;
+drop table recipe;
+
+ALTER TABLE comparison_logs
+    ADD COLUMN report JSON NULL COMMENT '비교 리포트 (건강 점수, NOVA, 영양성분)' AFTER product_ids;
+    
+-- 1. 챗봇 대화 기록 테이블
+CREATE TABLE IF NOT EXISTS chat_sessions (
+    id VARCHAR(64) PRIMARY KEY,
+    user_id INT NOT NULL,                          -- users 테이블의 PK가 user_id이므로 타입(int) 일치
+    title VARCHAR(255) DEFAULT '새로운 대화',
+    messages JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- 유저별 대화 목록 조회 성능 인덱스
+CREATE INDEX idx_user_sessions ON chat_sessions(user_id, updated_at DESC);
+
+
+-- 2. 마이페이지 통합 로그/보관함 테이블 (마이페이지_로그)
+CREATE TABLE IF NOT EXISTS mypage_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,                          -- users 테이블의 PK가 user_id이므로 타입(int) 일치
+    log_type VARCHAR(50) NOT NULL,                 -- 'recipe': 내 레시피, 'comparison': 비교 히스토리 등
+    title VARCHAR(255) NOT NULL,
+    content JSON NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- 유저별, 유형별 조회 성능 인덱스
+CREATE INDEX idx_user_mypage_logs ON mypage_logs(user_id, log_type, created_at DESC);
+
+-- 1. 위시리스트 테이블 (중복 찜 방지 UNIQUE 설정)
+CREATE TABLE IF NOT EXISTS wishlists (
+    wishlist_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    food_id VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (food_id) REFERENCES active_food_catalog(report_no) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE KEY unique_user_food (user_id, food_id)
+);
+
+-- 2. 비교함 로그 히스토리 테이블
+CREATE TABLE IF NOT EXISTS comparison_logs (
+    comparison_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_ids JSON NOT NULL, -- 비교했던 food_id 목록 (예: [1, 5, 12])
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
 
 ALTER TABLE active_fooxd_catalog 
 ADD COLUMN image_url VARCHAR(500) DEFAULT NULL AFTER raw_materials;

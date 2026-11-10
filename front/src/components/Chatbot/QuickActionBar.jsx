@@ -6,8 +6,18 @@ import {
 } from './styles/Chatbot.styles';
 
 // 레시피 추천 직후 메시지 하단에 노출되는 퀵 액션 버튼
-// ① 추가 질문하기  ② 다른 후보 보기(이미 받은 검색 결과 사용)  ③ 새로운 레시피 검색
-function QuickActionBar({ candidates, currentIndex, onAskDetail, onShowCandidate, onNewSearch, disabled }) {
+// ① 추가 질문하기 ② 다른 후보 보기(이미 받은 검색 결과 사용) ③ 다른 레시피 추천하기 ④ 이 레시피 저장하기 ⑤ 완전히 새로운 검색
+function QuickActionBar({
+  candidates,
+  currentIndex,
+  onAskDetail,
+  onShowCandidate,
+  onRegenerate,
+  onSaveRecipe,
+  isSaved,
+  onNewSearch,
+  disabled,
+}) {
   const otherCandidates = candidates
     .map((candidate, index) => ({ candidate, index }))
     .filter(({ index }) => index !== currentIndex);
@@ -31,6 +41,18 @@ function QuickActionBar({ candidates, currentIndex, onAskDetail, onShowCandidate
             🔄 {index + 1}번 레시피 보기
           </QuickActionButton>
         ))}
+
+        <QuickActionButton type="button" onClick={onRegenerate} disabled={disabled}>
+          🍳 다른 레시피 추천하기
+        </QuickActionButton>
+
+        <QuickActionButton
+          type="button"
+          onClick={onSaveRecipe}
+          disabled={disabled || isSaved}
+        >
+          {isSaved ? '✅ 보관함에 저장됨' : '💾 이 레시피 저장하기'}
+        </QuickActionButton>
 
         <QuickActionButton type="button" onClick={onNewSearch} disabled={disabled}>
           🆕 완전히 새로운 레시피 검색하기

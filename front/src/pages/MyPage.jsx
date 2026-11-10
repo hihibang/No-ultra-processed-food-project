@@ -7,6 +7,7 @@ import { useCart } from '../hooks/useCart';
 import { useToast } from '../hooks/useToast';
 import { comparisonApi } from '../api/comparisonApi';
 import ComparisonResultModal from './Comparison/ComparisonResultModal';
+import RecipeBoxPanel from '../components/MyPage/RecipeBoxPanel';
 import {
   APPLIANCE_OPTIONS,
   PREFERENCE_OPTIONS,
@@ -61,6 +62,7 @@ const TABS = [
   { key: 'profile', label: '개인화 설정' },
   { key: 'wishlist', label: '위시리스트 관리' },
   { key: 'comparisons', label: '비교 히스토리' },
+  { key: 'recipes', label: '레시피 보관함' },
 ];
 
 const LEVEL_LABEL = Object.fromEntries(COOKING_LEVEL_OPTIONS.map(opt => [opt.value, opt.label]));
@@ -510,6 +512,7 @@ function MyPage() {
         {activeTab === 'profile' && renderProfileTab()}
         {activeTab === 'wishlist' && renderWishlistTab()}
         {activeTab === 'comparisons' && renderComparisonTab()}
+        {activeTab === 'recipes' && <RecipeBoxPanel />}
       </Container>
     </MainContainer>
   );
