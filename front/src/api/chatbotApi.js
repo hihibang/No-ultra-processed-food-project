@@ -18,13 +18,14 @@ export class ChatbotError extends Error {
 }
 
 // n8n 응답 정규화
-// - candidates: 직전 벡터 검색으로 얻은 추천 후보 목록 (없으면 빈 배열)
-// - answer: 후보가 있으면 candidates[0]을 사용해 화면과 후보 목록이 어긋나지 않게 한다
+// - recipes: 벡터 검색으로 얻은 추천 후보군 (응답의 recipes, 없으면 기존 candidates 필드 사용, 없으면 빈 배열)
+// - answer: 후보가 있으면 recipes[0]을 사용해 화면과 후보 목록이 어긋나지 않게 한다
 const extractRecipeResult = (data) => {
   const item = Array.isArray(data) ? data[0] : data;
 
-  const candidates = Array.isArray(item?.candidates)
-    ? item.candidates
+  const list = Array.isArray(item?.recipes) ? item.recipes : item?.candidates;
+  const recipes = Array.isArray(list)
+    ? list
       .map((c, i) => ({
         title: typeof c?.title === 'string' && c.title.trim() ? c.title.trim() : `후보 ${i + 1}`,
         content: c?.answer ?? c?.content ?? c?.text,
@@ -32,15 +33,22 @@ const extractRecipeResult = (data) => {
       .filter(c => typeof c.content === 'string' && c.content.trim() !== '')
     : [];
 
-  const answer = candidates.length > 0
-    ? candidates[0].content
+  const answer = recipes.length > 0
+    ? recipes[0].content
     : item?.answer ?? item?.output ?? item?.text;
 
   if (typeof answer !== 'string' || answer.trim() === '') {
     throw new ChatbotError('챗봇 응답 형식이 올바르지 않습니다.');
   }
-  return { answer, candidates };
+  return { answer, recipes };
 };
+
+const pickProfile = (profile) => ({
+  cookingLevel: profile.cookingLevel,
+  appliances: profile.appliances,
+  preferences: profile.preferences,
+  restrictions: profile.restrictions,
+});
 
 async function postToRecipeWebhook(payload) {
   if (!RECIPE_WEBHOOK_URL) {
@@ -82,12 +90,18 @@ export function requestRecipe({ sessionId, question, profile }) {
     type: 'recipe',
     sessionId,
     question,
-    profile: {
-      cookingLevel: profile.cookingLevel,
-      appliances: profile.appliances,
-      preferences: profile.preferences,
-      restrictions: profile.restrictions,
-    },
+    profile: pickProfile(profile),
+    requestedAt: new Date().toISOString(),
+  });
+}
+
+// 퀵 액션 ③ 다른 레시피 추천하기: 검색을 다시 하지 않고, 저장해 둔 후보 1개(targetRecipe)의 조리법 설명만 요청
+export function requestRecipeDetail({ sessionId, targetRecipe, profile }) {
+  return postToRecipeWebhook({
+    type: 'recipe_detail',
+    sessionId,
+    targetRecipe,
+    profile: pickProfile(profile),
     requestedAt: new Date().toISOString(),
   });
 }
@@ -119,5 +133,5 @@ export async function requestFollowup({ sessionId, question, recipeContext, hist
   if (typeof data?.answer !== 'string' || data.answer.trim() === '') {
     throw new ChatbotError('챗봇 응답 형식이 올바르지 않습니다.');
   }
-  return { answer: data.answer, candidates: [] };
+  return { answer: data.answer, recipes: [] };
 }

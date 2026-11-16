@@ -19,7 +19,7 @@ import {
 } from '../components/Chatbot/styles/Chatbot.styles';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
-import { requestFollowup, requestRecipe } from '../api/chatbotApi';
+import { requestFollowup, requestRecipe, requestRecipeDetail } from '../api/chatbotApi';
 import { chatSessionApi } from '../api/chatSessionApi';
 import { mypageApi } from '../api/mypageApi';
 import {
@@ -36,6 +36,7 @@ import { extractRecipeTitle, findOriginalQuestion } from '../utils/chatRecipe';
 
 const DEFAULT_ERROR = '답변을 받아오지 못했습니다. 잠시 후 다시 시도해 주세요.';
 const QUESTION_MAX_LENGTH = 1000;
+const EXHAUSTED_MESSAGE = '준비된 맞춤 레시피를 모두 추천해 드렸어요! 새로운 재료를 입력해 보실래요?';
 
 // 가장 최근에 화면에 표시된 추천 레시피 메시지 (후속 질문의 맥락이 된다)
 const findLatestRecipe = (messages) =>
@@ -58,6 +59,9 @@ function AIChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  // 현재 대화창의 추천 레시피 후보군 캐시 (퀵 액션 ③에서 검색 없이 다음 후보를 꺼내 쓴다)
+  // { sessionId, cachedRecipes, recipeIndex } — 대화를 나가거나 새 검색어를 입력하면 초기화한다
+  const [recipeCache, setRecipeCache] = useState(null);
 
   // 상태 갱신과 ref 동기화를 함께 한다. 비동기 흐름에서도 최신 목록을 읽기 위함
   const commitSessions = (next) => {
@@ -110,16 +114,27 @@ function AIChatPage() {
   const messages = activeSession?.messages ?? [];
   const lastMessage = messages[messages.length - 1] ?? null;
 
+  // 현재 대화의 후보군 캐시를 돌려준다. 캐시가 없으면(새로고침·기록에서 다시 연 대화) 마지막 추천 메시지에 보관된 후보로 복원한다.
+  const getActiveRecipeCache = () => {
+    if (!activeId) return null;
+    if (recipeCache?.sessionId === activeId) return recipeCache;
+    const latest = findLatestRecipe(messages);
+    if (!latest?.candidates?.length) return null;
+    return { sessionId: activeId, cachedRecipes: latest.candidates, recipeIndex: latest.candidateIndex ?? 0 };
+  };
+
   const resetToNewChat = () => {
     setActiveId(null);
     setInput('');
     setError('');
+    setRecipeCache(null);
   };
 
   const handleSelect = (id) => {
     if (isLoading) return;
     setActiveId(id);
     setError('');
+    setRecipeCache(null);
   };
 
   const handleDelete = async (id) => {
@@ -135,7 +150,10 @@ function AIChatPage() {
       }
     }
     commitSessions(sessionsRef.current.filter(s => s.id !== id));
-    if (id === activeId) setActiveId(null);
+    if (id === activeId) {
+      setActiveId(null);
+      setRecipeCache(null);
+    }
   };
 
   const handleSyncProfile = () => {
@@ -157,45 +175,46 @@ function AIChatPage() {
     inputRef.current?.focus();
   };
 
-  // 퀵 액션 ② 다른 후보 보기: 추가 검색 없이 직전 검색 결과의 후보를 바로 표시
-  const handleShowCandidate = (index) => {
-    const recipe = findLatestRecipe(messages);
-    const candidate = recipe?.candidates?.[index];
-    if (!candidate || isLoading) return;
-
-    const message = {
-      id: createId(),
-      role: 'assistant',
-      kind: 'recipe',
-      content: candidate.content,
-      candidates: recipe.candidates,
-      candidateIndex: index,
-      createdAt: new Date().toISOString(),
-    };
-    commitSessions(appendToSession(sessionsRef.current, activeId, [message]));
-    persistSession(activeId);
-  };
-
-  // 퀵 액션 ③ 다른 레시피 추천하기: 같은 재료/조건의 원래 질문을 다시 보내 새 추천을 받는다
+  // 퀵 액션 ③ 다른 레시피 추천하기: 검색을 다시 하지 않고, 저장된 후보군에서 다음 순번 레시피 1개의 조리법만 요청
   const handleRegenerate = () => {
     if (isLoading || !activeSession || lastMessage?.kind !== 'recipe') return;
 
-    const originalQuestion = findOriginalQuestion(messages, messages.length - 1);
-    if (!originalQuestion) {
-      showToast('원래 질문을 찾지 못해 다시 추천할 수 없습니다.', 'error');
+    const cache = getActiveRecipeCache();
+    if (!cache) {
+      showToast('추천 후보 정보를 찾지 못해 다른 레시피를 보여드릴 수 없습니다.', 'error');
       return;
     }
 
-    const previousTitle = extractRecipeTitle(lastMessage.content);
-    const now = new Date().toISOString();
+    const { cachedRecipes } = cache;
+    const nextIndex = cache.recipeIndex + 1;
+    const sessionId = activeSession.id;
+
+    // 후보를 모두 보여준 경우: API를 호출하지 않고 안내만 남긴다
+    if (nextIndex >= cachedRecipes.length) {
+      const message = {
+        id: createId(),
+        role: 'assistant',
+        kind: 'exhausted',
+        content: EXHAUSTED_MESSAGE,
+        createdAt: new Date().toISOString(),
+      };
+      commitSessions(appendToSession(sessionsRef.current, sessionId, [message]));
+      persistSession(sessionId);
+      return;
+    }
+
     runTurn({
-      sessionId: activeSession.id,
+      sessionId,
       isNewSession: false,
       history: messages,
-      kind: 'recipe',
-      question: `${originalQuestion.slice(0, QUESTION_MAX_LENGTH)}\n\n이전에 추천받은 "${previousTitle}"과 다른 새로운 레시피로 추천해 주세요.`,
-      userMessage: { id: createId(), role: 'user', kind: 'recipe', content: '🍳 다른 레시피를 추천해 주세요', createdAt: now },
+      kind: 'detail',
+      targetRecipe: cachedRecipes[nextIndex],
+      userMessage: { id: createId(), role: 'user', kind: 'detail', content: '🍳 다른 레시피를 추천해 주세요', createdAt: new Date().toISOString() },
       fromInput: false,
+      // 응답 레시피를 같은 후보군의 nextIndex 위치로 표시해 ② 후보 보기와 이어지게 한다
+      candidateSet: { candidates: cachedRecipes, candidateIndex: nextIndex },
+      // 요청이 성공했을 때만 현재 후보 위치를 옮긴다
+      onSuccess: () => setRecipeCache({ sessionId, cachedRecipes, recipeIndex: nextIndex }),
     });
   };
 
@@ -229,7 +248,7 @@ function AIChatPage() {
     }
   };
 
-  // 질문 1회 처리: 사용자 메시지 추가 → 추천/후속 답변 요청 → 성공 시 답변 추가 및 서버 저장, 실패 시 되돌리기
+  // 질문 1회 처리: 사용자 메시지 추가 → 추천/후속/다른 레시피 답변 요청 → 성공 시 답변 추가 및 서버 저장, 실패 시 되돌리기
   const runTurn = async ({
     sessionId,
     isNewSession,
@@ -237,8 +256,11 @@ function AIChatPage() {
     recipeContext,
     kind,
     question,
+    targetRecipe,
     userMessage,
     fromInput = true,
+    candidateSet = null,
+    onSuccess,
   }) => {
     commitSessions(appendToSession(sessionsRef.current, sessionId, [userMessage], userMessage.createdAt));
     setActiveId(sessionId);
@@ -247,21 +269,33 @@ function AIChatPage() {
     setIsLoading(true);
 
     try {
-      const result = kind === 'recipe'
-        ? await requestRecipe({ sessionId, question, profile })
-        : await requestFollowup({ sessionId, question, recipeContext, history, profile });
+      let result;
+      if (kind === 'recipe') {
+        result = await requestRecipe({ sessionId, question, profile });
+      } else if (kind === 'detail') {
+        result = await requestRecipeDetail({ sessionId, targetRecipe, profile });
+      } else {
+        result = await requestFollowup({ sessionId, question, recipeContext, history, profile });
+      }
 
-      const { answer, candidates } = result;
+      const { answer, recipes } = result;
       const assistantMessage = {
         id: createId(),
         role: 'assistant',
-        kind,
+        // 다른 레시피 답변도 추천 레시피로 취급해 퀵 액션이 다시 노출되게 한다
+        kind: kind === 'detail' ? 'recipe' : kind,
         content: answer,
         createdAt: new Date().toISOString(),
-        // 1차 추천에서 받은 후보 목록을 보관해 퀵 액션 ②에서 추가 검색 없이 사용한다
-        ...(candidates.length > 0 && { candidates, candidateIndex: 0 }),
+        // 후보군을 메시지에 보관해 퀵 액션 ②와 새로고침 후 ③에서 사용한다
+        ...(candidateSet ?? (recipes.length > 0 && { candidates: recipes, candidateIndex: 0 })),
       };
       commitSessions(appendToSession(sessionsRef.current, sessionId, [assistantMessage]));
+
+      // 1차 추천 성공 시 후보군을 대화창 상태에 고정하고 첫 번째 후보(인덱스 0)부터 시작한다
+      if (kind === 'recipe' && recipes.length > 0) {
+        setRecipeCache({ sessionId, cachedRecipes: recipes, recipeIndex: 0 });
+      }
+      onSuccess?.();
       await persistSession(sessionId);
     } catch (err) {
       commitSessions(dropMessageFromSession(sessionsRef.current, sessionId, userMessage.id));
@@ -277,9 +311,13 @@ function AIChatPage() {
     const question = input.trim();
     if (!question || isLoading) return;
 
-    const recipe = findLatestRecipe(messages);
+    // 후보 소진 안내 뒤의 입력은 '다른 재료'이므로 후속 질문이 아닌 새 검색으로 처리한다
+    const needsNewSearch = lastMessage?.kind === 'exhausted';
+    const recipe = needsNewSearch ? null : findLatestRecipe(messages);
     // 추천 이력이 없으면 1차 추천(n8n 벡터 검색), 있으면 후속 질문(로컬 서버 OpenAI)
     const kind = recipe ? 'followup' : 'recipe';
+    // 새 검색어를 직접 입력하면 이전 후보군은 버린다 (성공 시 runTurn에서 새 후보군으로 채운다)
+    if (kind === 'recipe') setRecipeCache(null);
 
     runTurn({
       sessionId: activeSession?.id ?? createId(),
@@ -304,11 +342,8 @@ function AIChatPage() {
   const showQuickActions = lastMessage?.role === 'assistant' && lastMessage?.kind === 'recipe';
   const quickActions = showQuickActions
     ? {
-      candidates: lastMessage.candidates ?? [],
-      currentIndex: lastMessage.candidateIndex ?? 0,
       isSaved: lastMessage.savedLogId != null,
       onAskDetail: handleAskDetail,
-      onShowCandidate: handleShowCandidate,
       onRegenerate: handleRegenerate,
       onSaveRecipe: handleSaveRecipe,
       onNewSearch: handleNewSearch,
