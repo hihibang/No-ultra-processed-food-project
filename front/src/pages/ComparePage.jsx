@@ -4,6 +4,7 @@ import MainContainer from '../components/Layout/MainContainer';
 import Button from '../components/Common/Button';
 import { useAuth } from '../hooks/useAuth';
 import { useCompare } from '../hooks/useCompare';
+import { productDetailPath } from '../utils/product';
 import { useToast } from '../hooks/useToast';
 import ComparisonResultModal from './Comparison/ComparisonResultModal';
 import {
@@ -135,8 +136,12 @@ function ComparePage() {
                     <ItemImage
                       src={item.imageUrl ?? item.image ?? '/images/div.relative.png'}
                       alt={item.name ?? item.productName}
+                      onClick={() => navigate(productDetailPath(item.id))}
+                      style={{ cursor: 'pointer' }}
                     />
-                    <ItemName>{item.name ?? item.productName}</ItemName>
+                    <ItemName onClick={() => navigate(productDetailPath(item.id))} style={{ cursor: 'pointer' }}>
+                      {item.name ?? item.productName}
+                    </ItemName>
                     <Button variant="gray" size="sm" onClick={() => handleRemove(item)}>
                       삭제
                     </Button>

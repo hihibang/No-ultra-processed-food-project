@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { logInteraction } from '../../api/recommendationApi';
 import SmartCompareModal from '../Recommendation/SmartCompareModal';
 import { useCart } from '../../hooks/useCart';
 import { useCompare } from '../../hooks/useCompare';
 import { useWishlistToggle } from '../../hooks/useWishlistToggle';
 import { getIcon } from '../../constants/icons';
+import { productDetailPath } from '../../utils/product';
 import {
   CardWrapper,
   ImageWrapper,
@@ -34,6 +36,7 @@ function ProductCard({ product, onClick }) {
   const { isInWishlist } = useCart();
   const { addToCompare, isInCompare } = useCompare();
   const toggleWishlist = useWishlistToggle();
+  const navigate = useNavigate();
   const [isCompareOpen, setIsCompareOpen] = useState(false);
 
   if (!product) return null;
@@ -58,6 +61,12 @@ function ProductCard({ product, onClick }) {
     toggleWishlist({ ...product, id, name });
   };
 
+  // 이미지·상품명을 누르면 상품 상세 페이지로 이동 (카드 자체 클릭 동작과는 분리)
+  const goToDetail = (e) => {
+    e.stopPropagation();
+    navigate(productDetailPath(id));
+  };
+
   const handleAddToCompare = (e) => {
     e.stopPropagation();
     logInteraction({ itemType: 'product', itemId: id, action: 'compare' });
@@ -72,7 +81,7 @@ function ProductCard({ product, onClick }) {
 
   return (
     <CardWrapper onClick={onClick}>
-      <ImageWrapper>
+      <ImageWrapper onClick={goToDetail} style={{ cursor: 'pointer' }}>
         <img src={image} alt={name} />
 
         {novaGrade ? (
@@ -96,7 +105,7 @@ function ProductCard({ product, onClick }) {
             {category && <IngredientTag>{category}</IngredientTag>}
           </IngredientTags>
 
-          <ProductName>{name}</ProductName>
+          <ProductName onClick={goToDetail} style={{ cursor: 'pointer' }}>{name}</ProductName>
           {brand && <ProductSub>{brand}</ProductSub>}
         </div>
 

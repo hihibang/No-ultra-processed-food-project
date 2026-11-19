@@ -41,3 +41,6 @@ export const fromWishlistEntry = (entry) => {
     imageUrl: details?.imageUrl ?? null,
   });
 };
+
+// 상품 상세 페이지 경로 (이미지·상품명 클릭 시 이동)
+export const productDetailPath = (reportNo) => `/products/${encodeURIComponent(String(reportNo))}`;

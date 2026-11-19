@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { recommendationApi, logInteraction } from '../../api/recommendationApi';
 import { useWishlistToggle } from '../../hooks/useWishlistToggle';
 import { useCart } from '../../hooks/useCart';
+import { productDetailPath } from '../../utils/product';
 import { ModalOverlay, ModalContent, ModalHeader, ModalTitle, CloseButton, ModalBody } from '../Common/styles/ProductDetailModal.styles';
 import {
   Badge,
@@ -46,7 +48,7 @@ const getBestByMetric = (candidates) => {
 };
 
 // 하나의 상품 행: 건강 점수, 영양 스펙, 선택률 게이지
-function CompareRow({ item, baseNutrition, best, onOpen }) {
+function CompareRow({ item, baseNutrition, best, onOpen, onNavigate }) {
   const { isInWishlist } = useCart();
   const toggleWishlist = useWishlistToggle();
   const inWishlist = isInWishlist(item.reportNo);
@@ -54,7 +56,12 @@ function CompareRow({ item, baseNutrition, best, onOpen }) {
   return (
     <ClickableRow onClick={() => onOpen(item)}>
       <td>
-        <strong>{item.productName}</strong>
+        <strong
+          onClick={(e) => { e.stopPropagation(); onNavigate(item); }}
+          style={{ cursor: 'pointer' }}
+        >
+          {item.productName}
+        </strong>
         <div><MutedText>{item.companyName}</MutedText></div>
       </td>
       <BestCell $best={best.healthScore.has(item.reportNo)}>
@@ -94,6 +101,7 @@ function CompareRow({ item, baseNutrition, best, onOpen }) {
 
 // ④ 스마트 상품 비교: 건강 점수가 비슷한 동종 제품 + 기준 상품을 찜한 고객의 선택률
 function SmartCompareModal({ isOpen, productId, productName, onClose }) {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -116,6 +124,12 @@ function SmartCompareModal({ isOpen, productId, productName, onClose }) {
   // 비교 화면에서 상품을 클릭하면 행동 로그(클릭 2점)를 남긴다
   const handleOpenItem = (item) => {
     logInteraction({ itemType: 'product', itemId: item.reportNo, action: 'click' });
+  };
+
+  // 상품명 클릭: 상세 페이지로 이동 (모달은 함께 닫는다)
+  const handleNavigateItem = (item) => {
+    onClose();
+    navigate(productDetailPath(item.reportNo));
   };
 
   const rows = data ? [...data.alternatives, ...data.topSelected.filter(
@@ -190,6 +204,7 @@ function SmartCompareModal({ isOpen, productId, productName, onClose }) {
                         baseNutrition={data.baseProduct.nutrition}
                         best={best}
                         onOpen={handleOpenItem}
+                        onNavigate={handleNavigateItem}
                       />
                     ))}
                   </tbody>

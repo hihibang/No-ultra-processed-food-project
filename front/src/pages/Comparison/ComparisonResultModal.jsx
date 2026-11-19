@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Modal from '../../components/Common/Modal';
 import { useToast } from '../../hooks/useToast';
 import { comparisonApi } from '../../api/comparisonApi';
+import { productDetailPath } from '../../utils/product';
 import ScoreCriteriaPanel from './ScoreCriteriaPanel';
 import {
   TitleRow,
@@ -74,6 +76,7 @@ const getBestIndexes = (items, key, higherIsBetter) => {
 
 function ComparisonResultModal({ isOpen, onClose, comparisonId, data, createdAtLabel }) {
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [detail, setDetail] = useState(null);
   const [status, setStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -123,6 +126,14 @@ function ComparisonResultModal({ isOpen, onClose, comparisonId, data, createdAtL
 
   const items = detail?.report?.items ?? [];
 
+  // 상품 이미지·이름 클릭: 결과 모달을 닫고 상품 상세 페이지로 이동
+  const goToProduct = (item) => {
+    const reportNo = item.reportNo || item.food_id;
+    if (!reportNo) return;
+    onClose?.();
+    navigate(productDetailPath(reportNo));
+  };
+
   return (
     <>
     <Modal isOpen={isOpen} onClose={showCriteria ? () => {} : onClose} maxWidth="960px">
@@ -159,8 +170,12 @@ function ComparisonResultModal({ isOpen, onClose, comparisonId, data, createdAtL
                       <ItemImage
                         src={item.imageUrl || item.image_url || '/images/div.relative.png'}
                         alt={item.productName || item.product_name}
+                        onClick={() => goToProduct(item)}
+                        style={{ cursor: 'pointer' }}
                       />
-                      <ItemName>{item.productName || item.product_name}</ItemName>
+                      <ItemName onClick={() => goToProduct(item)} style={{ cursor: 'pointer' }}>
+                        {item.productName || item.product_name}
+                      </ItemName>
 
                       <ItemCompany>{item.companyName || item.company_name}</ItemCompany>
                     </Th>

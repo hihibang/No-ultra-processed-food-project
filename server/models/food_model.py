@@ -48,6 +48,9 @@ class FoodModel:
                 sugars,
                 sodium,
                 saturated_fat,
+                trans_fat,
+                protein,
+                total_weight,
                 raw_materials,
                 image_url
             FROM active_food_catalog
@@ -81,3 +84,15 @@ class FoodModel:
 
         result = await session.execute(sql, {"limit": limit})
         return [dict(row._mapping) for row in result.fetchall()]
+
+    # 식품첨가물공전 사전의 품목명 목록 (원재료 첨가물 판정용). 프로세스 안에서 한 번만 읽는다.
+    _additive_names: set[str] | None = None
+
+    @staticmethod
+    async def get_additive_names(session: AsyncSession) -> set[str]:
+        if FoodModel._additive_names is None:
+            result = await session.execute(text(
+                "SELECT DISTINCT additive_name FROM food_additive_standard WHERE additive_name IS NOT NULL"
+            ))
+            FoodModel._additive_names = {row[0] for row in result.fetchall()}
+        return FoodModel._additive_names

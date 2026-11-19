@@ -84,6 +84,16 @@ function CatalogPage() {
           });
         }
 
+        // 영양성분 필터 다중 선택 (AND 조건, 백엔드에서 판정)
+        (filters?.nutritionFilters ?? []).forEach((id) => {
+          params.append('nutrition', id);
+        });
+
+        // 제외할 첨가물 다중 선택 (AND 조건, 백엔드에서 판정)
+        (filters?.excludedAdditives ?? []).forEach((id) => {
+          params.append('exclude_additives', id);
+        });
+
         // 💡 백엔드 전체 수집을 위해 limit 파라미터 완전 삭제
         const response = await fetch(
           `http://127.0.0.1:8000/api/foods/search?${params.toString()}`

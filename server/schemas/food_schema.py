@@ -22,6 +22,7 @@ class ProductDetail(BaseModel):
     productName: str
     companyName: Optional[str] = None
     foodCategory: Optional[str] = None
+    imageUrl: Optional[str] = None
     productionDate: Optional[str] = None
 
 class NutritionDetail(BaseModel):
@@ -35,8 +36,13 @@ class NutritionDetail(BaseModel):
     saturatedFat: Optional[float] = 0.0
     transFat: Optional[float] = 0.0
 
+class MaterialItem(BaseModel):
+    name: str
+    isAdditive: bool
+
 class FoodDetailResponse(BaseModel):
     product: ProductDetail
     nutrition: NutritionDetail
     materials: Optional[str] = None
+    materialList: List[MaterialItem] = []
     upfAnalysis: dict

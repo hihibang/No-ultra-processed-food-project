@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { recommendationApi } from '../../api/recommendationApi';
 import { useCart } from '../../hooks/useCart';
 import { useWishlistToggle } from '../../hooks/useWishlistToggle';
+import { productDetailPath } from '../../utils/product';
 import SmartCompareModal from './SmartCompareModal';
 import {
   Badge,
@@ -21,6 +23,7 @@ import {
 function RecipeProductSection({ recipeTitle, ingredients }) {
   const { isInWishlist } = useCart();
   const toggleWishlist = useWishlistToggle();
+  const navigate = useNavigate();
   const [state, setState] = useState({ status: 'loading', items: [] });
   const [compareTarget, setCompareTarget] = useState(null);
 
@@ -44,8 +47,20 @@ function RecipeProductSection({ recipeTitle, ingredients }) {
             const wished = isInWishlist(item.reportNo);
             return (
               <Card key={item.reportNo}>
-                {item.imageUrl && <CardImage src={item.imageUrl} alt={item.productName} />}
-                <CardName>{item.productName}</CardName>
+                {item.imageUrl && (
+                  <CardImage
+                    src={item.imageUrl}
+                    alt={item.productName}
+                    onClick={() => navigate(productDetailPath(item.reportNo))}
+                    style={{ cursor: 'pointer' }}
+                  />
+                )}
+                <CardName
+                  onClick={() => navigate(productDetailPath(item.reportNo))}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {item.productName}
+                </CardName>
                 <CardSub>{item.companyName} · 건강 점수 {item.healthScore}점</CardSub>
                 <BadgeRow>
                   {item.badges.map(label => <Badge key={label}>{label}</Badge>)}
