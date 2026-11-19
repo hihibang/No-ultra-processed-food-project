@@ -2,6 +2,8 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from utils.search_synonyms import expand_keyword
+
 CATEGORY_MAP = {
     "베이커리": ["빵류"],
     "음료/티": ["음료베이스", "액상차", "커피", "혼합음료", "과.채주스", "과.채음료", "탄산음료"],
@@ -23,9 +25,17 @@ class FoodModel:
         params = {}
 
         # 1. 키워드 검색
-        if keyword and keyword.strip():
-            query_conditions.append("(product_name LIKE :keyword OR company_name LIKE :keyword)")
-            params["keyword"] = f"%{keyword.strip()}%"
+        # 유의어·표기 차이(초콜릿↔초코, 오뎅↔어묵)와 띄어쓰기 차이까지 함께 찾는다
+        variants = expand_keyword(keyword)
+        if variants:
+            or_parts = []
+            for i, variant in enumerate(variants):
+                params[f"kw_{i}"] = f"%{variant}%"
+                or_parts.append(
+                    f"(product_name LIKE :kw_{i} OR REPLACE(product_name, ' ', '') LIKE :kw_{i} "
+                    f"OR company_name LIKE :kw_{i} OR product_type LIKE :kw_{i})"
+                )
+            query_conditions.append("(" + " OR ".join(or_parts) + ")")
 
         # 2. 카테고리 매핑 검색
         if category and category != "전체" and category in CATEGORY_MAP:

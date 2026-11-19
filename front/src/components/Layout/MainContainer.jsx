@@ -6,7 +6,7 @@ import Footer from './Footer';
 import Toast from '../Common/Toast';
 import { LayoutWrapper, MainContent } from './styles/MainContainer.styles';
 
-function MainContainer({ children, onSearch }) {
+function MainContainer({ children }) {
   const { viewMode } = useViewMode();
 
   useEffect(() => {
@@ -16,7 +16,7 @@ function MainContainer({ children, onSearch }) {
   return (
     <LayoutWrapper>
       <TopBanner />
-      <Header onSearch={onSearch} />
+      <Header />
       <MainContent>
         {children}
       </MainContent>

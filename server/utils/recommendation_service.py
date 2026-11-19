@@ -108,13 +108,145 @@ def recipe_key(title: str | None) -> str:
     return re.sub(r"\s+", "", str(title or "")).lower()
 
 
+# 재료 섹션 해석: 주재료(MAIN)와 부재료(SUB)를 나누고, 부재료는 조미료·양념·장류·식용유·향신료만 허용한다.
+MAIN_LABELS = ("주재료", "메인재료")
+SUB_LABELS = ("부재료", "양념", "소스", "육수", "장식", "고명", "드레싱")
+_LABEL_RE = re.compile(r"^(주재료|메인재료|부재료|양념|소스|육수|장식|고명|드레싱)")
+_INGREDIENT_HEADING_RE = re.compile(r"^(재료|재료\s*준비|준비물)\b")
+_STEP_LINE_RE = re.compile(r"^\d+[.)]\s")
+_TIP_LINE_RE = re.compile(r"^(※|팁|TIP|Tip)")
+_QTY_RE = re.compile(
+    r"\d+(\.\d+)?\s*(g|kg|ml|l|개|큰술|작은술|스푼|컵|T|t|cm|장|쪽|줌|꼬집|모|알|대|인분|개입)?\b|약간|적당량|조금",
+    re.IGNORECASE,
+)
+# 재료 앞에 붙는 손질·상태 표현 ("다진 돼지고기" → "돼지고기", "저염 간장" → "간장")
+_MODIFIER_WORDS = (
+    "다진", "채 썬", "채썬", "사각", "얇게", "잘게", "굵게", "저염", "국산", "생", "말린", "훈제",
+    "갈은", "익힌", "볶은", "삶은", "데친", "송송", "슬라이스", "얇은", "큰", "작은", "곱게",
+)
+# 허용하는 부재료 (조미료·소스·양념·장류·식용유지·향신료). 항목 이름에 포함되면 해당 키워드로 쓴다.
+SEASONING_TERMS = (
+    "간장", "액젓", "젓갈", "새우젓", "멸치젓", "소금", "천일염", "설탕", "스테비아", "올리고당", "물엿", "조청",
+    "식용유", "올리브유", "올리브오일", "참기름", "들기름", "포도씨유", "식용유지",
+    "후추", "후춧가루", "고춧가루", "고추가루", "파프리카", "커민", "카옌", "카이엔", "페퍼", "향신료", "허브",
+    "고추장", "된장", "쌈장", "춘장", "식초", "미림", "맛술", "굴소스", "케첩", "마요네즈", "머스타드", "머스터드",
+    "칠리소스", "스리라차", "다시마가루", "쯔유",
+)
+
+
+def _clean_item(text: str) -> str:
+    """재료 한 줄에서 이름만 남긴다: 괄호·수량·손질 표현 제거."""
+    core = re.sub(r"\([^)]*\)|\[[^\]]*\]", " ", text)
+    core = _QTY_RE.sub(" ", core)
+    core = re.sub(r"[·/]", " ", core)
+    words = [w for w in core.split() if w]
+    while words and any(words[0] == m or words[0] == m.replace(" ", "") for m in _MODIFIER_WORDS):
+        words.pop(0)
+    return " ".join(words).strip()
+
+
+def _split_items(text: str) -> list[str]:
+    items, depth, current = [], 0, ""
+    for char in text:
+        if char in "([":
+            depth += 1
+        elif char in ")]":
+            depth = max(0, depth - 1)
+        if char in ",，" and depth == 0:
+            items.append(current)
+            current = ""
+        else:
+            current += char
+    items.append(current)
+    return [item.strip() for item in items if item.strip()]
+
+
+def _clean_markdown(line: str) -> str:
+    return re.sub(r"^[#>\-\*●▶■◆\s]+", "", line).replace("**", "").strip()
+
+
+def parse_recipe_groups(text: str) -> list[tuple[str, str]] | None:
+    """재료 섹션을 (group, 항목) 목록으로 읽는다. group은 'main'(주재료) 또는 'sub'(부재료).
+    재료 섹션을 찾지 못하면 None. 조리 순서·팁·다른 제목 아래의 내용은 읽지 않는다."""
+    groups: list[tuple[str, str]] = []
+    found = False
+    in_region = False
+    group = "main"
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        is_heading = line.startswith("#")
+        body = _clean_markdown(line)
+
+        if is_heading and not _INGREDIENT_HEADING_RE.match(body):
+            label = _LABEL_RE.match(body)
+            if label is None:
+                in_region = False  # 조리 순서·팁·영양 등 다른 제목 → 재료 구간 종료
+                continue
+        if _STEP_LINE_RE.match(line) or _TIP_LINE_RE.match(body):
+            in_region = False
+            continue
+
+        if is_heading and _INGREDIENT_HEADING_RE.match(body):
+            in_region, found, group = True, True, "main"
+            rest = _INGREDIENT_HEADING_RE.sub("", body).lstrip(" :：")
+            body = rest
+        else:
+            label = _LABEL_RE.match(body)
+            if label:
+                in_region, found = True, True
+                group = "main" if label.group(1) in MAIN_LABELS else "sub"
+                body = re.sub(r"^(주재료|메인재료|부재료|양념|소스|육수|장식|고명|드레싱)\s*(및\s*[가-힣]+)?\s*[:：]?", "", body).strip()
+            elif re.match(r"^(재료|준비물)\s*[:：]", body):
+                in_region, found, group = True, True, "main"
+                body = re.sub(r"^(재료|준비물)\s*[:：]", "", body).strip()
+            elif not in_region:
+                continue
+
+        if in_region and body:
+            groups.extend((group, item) for item in _split_items(body))
+    return groups if found else None
+
+
+def _keywords_from_groups(groups: list[tuple[str, str]], limit: int) -> list[str]:
+    keywords: list[str] = []
+
+    def add(word: str) -> None:
+        if word and word not in keywords and word not in INGREDIENT_STOPWORDS and len(keywords) < limit:
+            keywords.append(word)
+
+    # 주재료는 적힌 그대로 쓴다 (먼저)
+    for group, item in groups:
+        if group == "main":
+            core = _clean_item(item)
+            if len(core) >= 2:
+                add(core)
+    # 부재료는 조미료·양념·향신료 항목만 (나머지 채소·곡물·물 등은 버린다)
+    for group, item in groups:
+        if group == "sub":
+            core = _clean_item(item)
+            term = next((t for t in SEASONING_TERMS if t in core), None)
+            if term:
+                add(term)
+    return keywords
+
+
 def extract_keywords(recipe_title: str, ingredients, limit: int = KEYWORD_LIMIT) -> list[str]:
-    """레시피 제목과 재료(목록 또는 마크다운 텍스트)에서 상품 검색 키워드를 뽑는다."""
+    """레시피 재료에서 상품 검색 키워드를 뽑는다.
+    1) '재료' 섹션(주재료/부재료)이 있으면 그 안의 항목만 쓴다. 제목·조리 순서·팁은 쓰지 않는다.
+    2) 재료 섹션이 없을 때만 본문 앞부분(글머리표 또는 안내 문장)을 폴백으로 읽는다."""
+    if isinstance(ingredients, str):
+        groups = parse_recipe_groups(ingredients)
+        if groups is not None:
+            return _keywords_from_groups(groups, limit)
+    elif ingredients:
+        groups = [("main", str(item)) for item in ingredients]
+        return _keywords_from_groups(groups, limit)
+
     raw_parts: list[str] = []
     if isinstance(ingredients, str):
         raw_parts.extend(_ingredient_lines(ingredients))
-    elif ingredients:
-        raw_parts.extend(str(item) for item in ingredients)
     raw_parts.append(recipe_title or "")
 
     keywords: list[str] = []
@@ -160,7 +292,7 @@ def _ingredient_lines(text: str) -> list[str]:
             continue
         if not skipping:
             prose.append(line)
-    return prose
+    return prose[:3]  # 폴백은 본문 앞부분만 참고한다
 
 
 def _strip_particle(token: str) -> str:

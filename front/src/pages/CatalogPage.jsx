@@ -44,10 +44,12 @@ const uniqueByReportNo = (items) => {
 function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlCategory = searchParams.get('category');
+  // 헤더 검색어는 URL의 q로 전달된다 (/catalog?q=...)
+  const urlQuery = searchParams.get('q') ?? '';
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(urlQuery);
   const [activeCategory, setActiveCategory] = useState(() => toCategory(urlCategory));
   const [filterState, setFilterState] = useState({
     novaGrades: [],
@@ -121,24 +123,21 @@ function CatalogPage() {
   }, [urlCategory]);
 
   // 카테고리 또는 필터 상태 변경 시 재호출
+  // 검색어가 URL에서 바뀌면(헤더 검색 등) 목록을 같은 검색어로 다시 불러온다
   useEffect(() => {
-    fetchFoods(searchQuery, activeCategory, filterState);
-  }, [activeCategory, filterState]);
+    setSearchQuery(urlQuery);
+    fetchFoods(urlQuery, activeCategory, filterState);
+  }, [urlQuery, activeCategory, filterState]);
 
-  // 카테고리 변경 시 상태와 URL을 함께 갱신 (새로고침/공유 시에도 같은 목록)
+  // 카테고리 변경 시 상태와 URL을 함께 갱신 (검색어는 유지, 새로고침/공유 시에도 같은 목록)
   const changeCategory = (category) => {
     setActiveCategory(category);
-    setSearchParams(category === '전체' ? {} : { category }, { replace: true });
+    const next = {};
+    if (category !== '전체') next.category = category;
+    if (urlQuery) next.q = urlQuery;
+    setSearchParams(next, { replace: true });
   };
 
-  // 검색어 입력 핸들러
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    fetchFoods(query, activeCategory, filterState);
-    if (query) {
-      showToast(`'${query}' 검색 결과입니다.`, 'success', 2000);
-    }
-  };
 
   // 카테고리 선택 핸들러
   const handleCategorySelect = (category) => {
@@ -224,7 +223,8 @@ function CatalogPage() {
 
   // 초기화 ↺
   const handleResetAll = () => {
-    changeCategory('전체');
+    setActiveCategory('전체');
+    setSearchParams({}, { replace: true }); // 검색어(q)와 카테고리를 URL에서 함께 지운다
     setSearchQuery('');
     setFilterState({
       novaGrades: [],
@@ -241,7 +241,7 @@ function CatalogPage() {
 
   return (
     <>
-      <MainContainer onSearch={handleSearch}>
+      <MainContainer>
         <CatalogWrapper>
           <CatalogLayout>
             {/* 좌측 필터 사이드바 */}
@@ -282,7 +282,11 @@ function CatalogPage() {
 
                 <SortAndCountWrapper>
                   <ProductCount>
-                    전체 <strong>{products.length}</strong>개 식품
+                    {urlQuery ? (
+                      <>'{urlQuery}' 검색 결과 <strong>{products.length}</strong>개</>
+                    ) : (
+                      <>전체 <strong>{products.length}</strong>개 식품</>
+                    )}
                   </ProductCount>
                   <SortSelectWrapper>
                     {/* 💡 가격 관련 정렬 옵션 완전히 삭제 */}

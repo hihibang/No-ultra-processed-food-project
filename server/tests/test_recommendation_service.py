@@ -285,6 +285,47 @@ class ProseIngredientTest(unittest.TestCase):
         self.assertEqual(rs._strip_particle("오이"), "오이")  # '오' 한 글자로 줄지 않는다
 
 
+class RecipeSectionTest(unittest.TestCase):
+    SAUSAGE = (
+        "# 라이스페이퍼 수제소시지\n\n## 재료\n### 주재료\n- 다진 돼지고기 200g\n- 사각 라이스페이퍼 4장\n"
+        "### 부재료\n- 새우젓 1작은술\n- 저염 간장 1큰술\n- 버섯가루 1큰술\n- 스테비아 1g\n- 찹쌀가루 1큰술\n"
+        "- 후춧가루 약간\n- 훈제 파프리카파우더 1작은술\n- 카옌 페퍼 약간\n- 커민 약간\n- 다진 양파 1/4개\n"
+        "- 다진 마늘 1쪽\n- 얼음물 50ml\n\n## 조리 순서\n1. 돼지고기와 양파를 곱게 다진다.\n2. 라이스페이퍼로 감싸 찐다.\n\n"
+        "## 팁\n- 어묵처럼 쫄깃하게 만들려면 찹쌀가루를 조금 더 넣으세요.\n"
+    )
+
+    def test_sausage_recipe_uses_only_listed_main_and_seasoning_items(self):
+        keywords = rs.extract_keywords("라이스페이퍼 수제소시지", self.SAUSAGE, limit=20)
+        self.assertEqual(keywords, ["돼지고기", "라이스페이퍼", "새우젓", "간장", "스테비아", "후춧가루", "파프리카", "카옌", "커민"])
+
+    def test_fish_cake_from_tip_and_title_word_never_become_keywords(self):
+        keywords = rs.extract_keywords("라이스페이퍼 수제소시지", self.SAUSAGE, limit=20)
+        for banned in ["어묵", "어묵처럼", "소시지", "수제소시지", "양파", "마늘", "찹쌀가루", "버섯가루", "얼음물"]:
+            self.assertNotIn(banned, keywords)
+
+    def test_inline_labels_split_main_and_sub(self):
+        text = "●주재료 : 두부 80g, 돼지고기 100g\n●양념 : 고춧가루 1큰술, 다진 마늘 1쪽, 물 100ml"
+        keywords = rs.extract_keywords("", text, limit=20)
+        self.assertEqual(keywords, ["두부", "돼지고기", "고춧가루"])
+
+    def test_sub_group_non_seasoning_is_dropped_but_main_kept(self):
+        text = "### 주재료\n- 감자 2개\n### 부재료\n- 양파 1개\n- 참기름 1큰술"
+        self.assertEqual(rs.extract_keywords("", text, limit=20), ["감자", "참기름"])
+
+    def test_title_is_ignored_when_section_exists(self):
+        text = "## 재료\n- 두부 1모\n"
+        self.assertNotIn("소시지", rs.extract_keywords("수제소시지", text, limit=20))
+
+    def test_fallback_to_prose_only_when_no_section(self):
+        keywords = rs.extract_keywords("어묵탕", "어묵탕을 만들려면 어묵, 대파, 국간장이 필요해요.", limit=20)
+        self.assertIn("어묵", keywords)
+
+
+class ProductRecipeSmokeTest(unittest.TestCase):
+    def test_parse_returns_none_without_section(self):
+        self.assertIsNone(rs.parse_recipe_groups("그냥 안내 문장입니다."))
+
+
 class FoodTypeAndNameTest(unittest.TestCase):
     def _row(self, name, product_type, raw=""):
         return {"report_no": name, "product_name": name, "product_type": product_type, "raw_materials": raw}

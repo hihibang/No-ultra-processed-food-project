@@ -30,8 +30,15 @@ import {
   CounterBadge,
 } from './styles/Header.styles';
 
-function Header({ onSearch }) {
+function Header() {
   const navigate = useNavigate();
+
+  // 헤더 검색: 어느 페이지에서든 상품 목록(/catalog)으로 이동해 검색 결과를 보여준다
+  const handleSearch = (query) => {
+    const trimmed = (query ?? '').trim();
+    if (!trimmed) return;
+    navigate(`/catalog?q=${encodeURIComponent(trimmed)}`);
+  };
   const { pathname } = useLocation();
   // user 객체 또는 userName 둘 다 안전하게 대응
   const { isLoggedIn, user, userName, logout } = useAuth();
@@ -112,7 +119,7 @@ function Header({ onSearch }) {
           </BrandGroup>
 
           <SearchBoxWrapper>
-            <SearchBox onSearch={onSearch} />
+            <SearchBox onSearch={handleSearch} />
           </SearchBoxWrapper>
 
           <ViewSwitchPill>

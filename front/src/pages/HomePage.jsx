@@ -18,10 +18,6 @@ function HomePage() {
   const { switchView } = useViewMode();
   const { showToast: showCompareToast, toastData, setShowToast } = useCompare();
 
-  const handleSearch = (searchQuery) => {
-    showToast(`'${searchQuery}'에 대해 검색하시겠습니까?`, 'success', 2000);
-  };
-
   const handleHeroPopup = () => {
     showToast('🎁 쿠폰 팝업이 열렸습니다!', 'success');
   };
@@ -49,7 +45,7 @@ function HomePage() {
 
   return (
     <>
-      <MainContainer onSearch={handleSearch}>
+      <MainContainer>
         <HeroSection
           onPopupOpen={handleHeroPopup}
           onCatalogClick={handleCatalogClick}
