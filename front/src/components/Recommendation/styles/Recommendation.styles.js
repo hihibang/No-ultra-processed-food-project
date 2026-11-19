@@ -166,6 +166,13 @@ export const CompareTable = styled.table`
   }
 `;
 
+// 4개 후보(기준 + 비슷한 상품 3개) 중 가장 좋은 성분값 셀 강조 (비교함 결과와 같은 표시)
+export const BestCell = styled.td`
+  font-weight: ${({ $best }) => ($best ? 800 : 400)};
+  color: ${({ $best, theme }) => ($best ? theme.colors.primary : 'inherit')};
+  background: ${({ $best }) => ($best ? '#ecfdf5' : 'transparent')};
+`;
+
 export const ClickableRow = styled.tr`
   cursor: pointer;
 
