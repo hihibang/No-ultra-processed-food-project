@@ -153,3 +153,31 @@ class InfluencerRecipeDetail(BaseModel):
     creatorName: str
     markdown: str
 
+
+class InfluencerCreatorItem(BaseModel):
+    creatorId: str
+    name: str
+    recipeCount: int
+    isFollowed: bool
+    communityScore: float
+
+
+class InfluencerCreatorListResponse(BaseModel):
+    items: list[InfluencerCreatorItem]
+
+
+class InfluencerFollowResponse(BaseModel):
+    creatorId: str
+    isFollowed: bool
+
+
+class CreatorRecipeItem(BaseModel):
+    recipeId: int
+    title: str
+    creatorId: str
+    creatorName: str
+
+
+class CreatorRecipesResponse(BaseModel):
+    items: list[CreatorRecipeItem]
+

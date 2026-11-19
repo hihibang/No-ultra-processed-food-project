@@ -16,6 +16,7 @@ import MyPage from './pages/MyPage';
 import ComparePage from './pages/ComparePage';
 import LoginPage from './pages/LoginPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import InfluencersPage from './pages/InfluencersPage';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
                     <Route path="/compare" element={<ComparePage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/products/:reportNo" element={<ProductDetailPage />} />
+                    <Route path="/influencers" element={<InfluencersPage />} />
                     <Route path="/wishlist" element={<Navigate to="/mypage?tab=wishlist" replace />} />
                   </Routes>
                 </Router>

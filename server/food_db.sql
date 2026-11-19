@@ -463,3 +463,14 @@ CREATE TABLE IF NOT EXISTS influencer_recipes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_influencer_recipes_creator (creator_id, is_verified)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='인플루언서 검수 레시피';
+
+-- ========================================================
+-- 인플루언서 찜(팔로우) 상태. 찜할 때 user_interactions 에도 'wish' 행동을 남겨 협업 필터링에 쓴다.
+-- ========================================================
+CREATE TABLE IF NOT EXISTS influencer_follows (
+    user_id INT NOT NULL,
+    creator_id VARCHAR(64) NOT NULL COMMENT '크리에이터 ID (influencer_recipes.creator_id 와 같은 값)',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, creator_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='인플루언서 찜(팔로우)';

@@ -68,6 +68,7 @@ function Header() {
     else if (mode === 'catalog') navigate('/catalog');
   };
 
+
   const handleBrandClick = () => {
     navigate('/');
     switchView('home');

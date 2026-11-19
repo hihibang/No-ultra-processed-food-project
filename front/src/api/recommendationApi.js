@@ -21,6 +21,17 @@ export const recommendationApi = {
     apiRequest(`/api/recommendations/influencer-recipes?limit=${limit}`),
   influencerRecipeDetail: (recipeId) =>
     apiRequest(`/api/recommendations/influencer-recipes/${encodeURIComponent(String(recipeId))}`),
+  // ⑥ /influencers 페이지: 크리에이터 목록(찜 여부·팬덤 점수), 찜 토글, 검수 레시피 목록
+  influencers: () => apiRequest('/api/recommendations/influencers'),
+  influencerRecipes: (creatorId) => apiRequest(
+    creatorId
+      ? `/api/recommendations/influencers/recipes?creator_id=${encodeURIComponent(creatorId)}`
+      : '/api/recommendations/influencers/recipes',
+  ),
+  followInfluencer: (creatorId) =>
+    apiRequest(`/api/recommendations/influencers/${encodeURIComponent(creatorId)}/follow`, { method: 'POST' }),
+  unfollowInfluencer: (creatorId) =>
+    apiRequest(`/api/recommendations/influencers/${encodeURIComponent(creatorId)}/follow`, { method: 'DELETE' }),
 };
 
 // 행동 로그 기록 (찜/비교/저장/클릭). 로그인 상태에서만 보내며, 실패해도 화면 동작에는 영향을 주지 않는다.

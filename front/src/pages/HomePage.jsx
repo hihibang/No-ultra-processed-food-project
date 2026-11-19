@@ -5,7 +5,7 @@ import { useCompare } from '../hooks/useCompare';
 import MainContainer from '../components/Layout/MainContainer';
 import HeroSection from '../components/Features/HeroSection';
 import CategoriesSection from '../components/Features/CategoriesSection';
-import CreatorGroupBuySection from '../components/Features/CreatorGroupBuySection';
+import InfluencerBanner from '../components/Features/InfluencerBanner';
 import FoodJournalSection from '../components/Journal/FoodJournalSection';
 import RecentProductsSection from '../components/Features/RecentProductsSection';
 import CompareToast from '../components/Common/CompareToast';
@@ -54,7 +54,7 @@ function HomePage() {
         <SimilarUserRecipesSection
           onAskChat={(question) => navigate('/ai-chat', { state: { question } })}
         />
-        <CreatorGroupBuySection />
+        <InfluencerBanner onClick={() => navigate('/influencers')} />
         <FoodJournalSection />
         <CategoriesSection onCategoryClick={handleCategoryClick} />
         <RecentProductsSection />

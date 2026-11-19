@@ -2,6 +2,8 @@
 # 협업 필터링 추천 API. 로그인 여부에 따라 개인화 정도만 달라지며, 비로그인도 콘텐츠 기준으로 응답한다.
 from typing import Literal, Optional
 
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,6 +11,9 @@ from database import get_db
 from schemas.recommendation_schema import (
     CompareResponse,
     CrossDomainResponse,
+    CreatorRecipesResponse,
+    InfluencerCreatorListResponse,
+    InfluencerFollowResponse,
     InfluencerRecipeDetail,
     InfluencerRecipeListResponse,
     InteractionCreateRequest,
@@ -20,6 +25,7 @@ from schemas.recommendation_schema import (
 from models.influencer_recipe_model import InfluencerRecipeModel
 from utils import recommendation_service as service
 from utils.influencer_recipe_service import influencer_recipe_candidates
+from utils import influencer_page_service as influencer_page
 from utils.auth_utils import get_current_user, get_optional_user
 
 router = APIRouter(prefix="/api/recommendations", tags=["Recommendations"])
@@ -101,3 +107,59 @@ async def influencer_recipe_detail(recipe_id: int, db: AsyncSession = Depends(ge
         "creatorName": row["creator_name"],
         "markdown": row["recipe_markdown"],
     }
+
+
+CREATOR_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+
+
+def _check_creator_id(creator_id: str) -> None:
+    if not CREATOR_ID_PATTERN.match(creator_id):
+        raise HTTPException(status_code=422, detail="크리에이터 ID 형식이 올바르지 않습니다.")
+
+
+@router.get("/influencers", response_model=InfluencerCreatorListResponse)
+async def list_influencers(
+    current_user: Optional[dict] = Depends(get_optional_user),
+    db: AsyncSession = Depends(get_db),
+):
+    user_id = current_user["user_id"] if current_user else None
+    return {"items": await influencer_page.list_influencers(db, user_id)}
+
+
+@router.get("/influencers/recipes", response_model=CreatorRecipesResponse)
+async def list_creator_recipes(
+    creator_id: Optional[str] = Query(None, max_length=64),
+    db: AsyncSession = Depends(get_db),
+):
+    if creator_id is not None:
+        _check_creator_id(creator_id)
+    rows = await InfluencerRecipeModel.list_verified(db, creator_id)
+    return {"items": [
+        {"recipeId": int(r["recipe_id"]), "title": r["recipe_title"],
+         "creatorId": r["creator_id"], "creatorName": r["creator_name"]}
+        for r in rows
+    ]}
+
+
+@router.post("/influencers/{creator_id}/follow", response_model=InfluencerFollowResponse)
+async def follow_influencer(
+    creator_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    _check_creator_id(creator_id)
+    if not await influencer_page.follow_creator(db, current_user["user_id"], creator_id):
+        raise HTTPException(status_code=404, detail="크리에이터를 찾을 수 없습니다.")
+    return {"creatorId": creator_id, "isFollowed": True}
+
+
+@router.delete("/influencers/{creator_id}/follow", response_model=InfluencerFollowResponse)
+async def unfollow_influencer(
+    creator_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    _check_creator_id(creator_id)
+    await influencer_page.unfollow_creator(db, current_user["user_id"], creator_id)
+    return {"creatorId": creator_id, "isFollowed": False}
+
