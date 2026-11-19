@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { logInteraction } from '../api/recommendationApi';
 import MainContainer from '../components/Layout/MainContainer';
 import Button from '../components/Common/Button';
 import ChatbotProfileForm from '../components/Chatbot/ChatbotProfileForm';
@@ -32,7 +34,7 @@ import {
   saveChatProfile,
   updateSessionMessage,
 } from '../utils/chatStorage';
-import { extractRecipeTitle, findOriginalQuestion } from '../utils/chatRecipe';
+import { extractRecipeTitle, findOriginalQuestion, toRecipeKey } from '../utils/chatRecipe';
 
 const DEFAULT_ERROR = '답변을 받아오지 못했습니다. 잠시 후 다시 시도해 주세요.';
 const QUESTION_MAX_LENGTH = 1000;
@@ -45,6 +47,7 @@ const findLatestRecipe = (messages) =>
 function AIChatPage() {
   const { user, isLoggedIn } = useAuth();
   const { showToast } = useToast();
+  const location = useLocation();
   const inputRef = useRef(null);
 
   // 대화 목록: 로그인 사용자는 서버 값, 비로그인 사용자는 화면 메모리 값만 사용한다 (브라우저 저장 없음)
@@ -87,6 +90,15 @@ function AIChatPage() {
   };
 
   useEffect(() => { saveChatProfile(profile); }, [profile]);
+
+  // 다른 화면(홈 등)에서 '챗봇에 물어보기'로 넘어온 질문을 입력창에 채운다
+  useEffect(() => {
+    const question = location.state?.question;
+    if (typeof question === 'string' && question.trim()) {
+      setInput(question);
+      inputRef.current?.focus();
+    }
+  }, [location.state]);
 
   // 로그인 상태가 바뀔 때마다 대화 목록을 맞춘다. 이전 버전이 남긴 브라우저 대화 기록도 함께 지운다.
   useEffect(() => {
@@ -242,6 +254,7 @@ function AIChatPage() {
       });
       commitSessions(updateSessionMessage(sessionsRef.current, sessionId, target.id, { savedLogId: saved.id }));
       await persistSession(sessionId);
+      logInteraction({ itemType: 'recipe', itemId: toRecipeKey(extractRecipeTitle(target.content)), action: 'save', label: extractRecipeTitle(target.content) });
       showToast('레시피 보관함에 저장했습니다.', 'success');
     } catch (err) {
       showToast(err.message || '레시피를 저장하지 못했습니다.', 'error');
@@ -375,6 +388,10 @@ function AIChatPage() {
             inputRef={inputRef}
             onInputChange={setInput}
             onSend={handleSend}
+            onAskQuestion={(question) => {
+              setInput(question);
+              inputRef.current?.focus();
+            }}
             quickActions={quickActions}
           />
 

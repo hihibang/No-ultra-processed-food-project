@@ -9,6 +9,7 @@ import CreatorGroupBuySection from '../components/Features/CreatorGroupBuySectio
 import FoodJournalSection from '../components/Journal/FoodJournalSection';
 import RecentProductsSection from '../components/Features/RecentProductsSection';
 import CompareToast from '../components/Common/CompareToast';
+import SimilarUserRecipesSection from '../components/Recommendation/SimilarUserRecipesSection';
 import { CATEGORY_OPTIONS } from '../data/CatalogPage.data';
 
 function HomePage() {
@@ -53,6 +54,9 @@ function HomePage() {
           onPopupOpen={handleHeroPopup}
           onCatalogClick={handleCatalogClick}
           onAIChat={handleAIChat}
+        />
+        <SimilarUserRecipesSection
+          onAskChat={(question) => navigate('/ai-chat', { state: { question } })}
         />
         <CreatorGroupBuySection />
         <FoodJournalSection />

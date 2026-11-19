@@ -429,3 +429,21 @@ CREATE TABLE IF NOT EXISTS users (
     
     INDEX idx_user_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='사용자 계정 및 취향 마스터 테이블';
+-- ========================================================
+-- 협업 필터링(CF) 추천용 통합 행동 로그 (implicit feedback)
+-- 가중치: view 1 / click·compare 2 / wish·save 5 (서버에서 계산해 weight 열에 저장)
+-- 찜(wishlists), 비교(comparison_logs), 레시피 보관(mypage_logs)은 기존 테이블을 함께 읽는다.
+-- ========================================================
+CREATE TABLE IF NOT EXISTS user_interactions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    item_type VARCHAR(20) NOT NULL COMMENT 'product | recipe | influencer',
+    item_id VARCHAR(255) NOT NULL COMMENT 'product: report_no, recipe: 정규화 제목 키, influencer: 크리에이터 ID',
+    action VARCHAR(20) NOT NULL COMMENT 'view | click | compare | wish | save',
+    weight FLOAT NOT NULL,
+    label VARCHAR(255) NULL COMMENT '화면 표시용 이름 (레시피 제목 등)',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_interactions_item (item_type, item_id),
+    INDEX idx_interactions_user (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='추천용 사용자 행동 로그';

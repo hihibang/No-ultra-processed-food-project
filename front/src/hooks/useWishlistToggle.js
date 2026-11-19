@@ -3,8 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
 import { useCart } from './useCart';
 import { useToast } from './useToast';
+import { logInteraction } from '../api/recommendationApi';
 
 // 하트 버튼 공통 동작: 비로그인 시 로그인 페이지로 이동, 로그인 시 서버 저장/삭제 후 토스트 표시
+// 찜이 새로 추가되면 추천용 행동 로그(wish 5점)도 함께 남긴다
 export function useWishlistToggle() {
   const { isLoggedIn } = useAuth();
   const { toggleWishlist } = useCart();
@@ -32,6 +34,7 @@ export function useWishlistToggle() {
       if (result === 'exists') {
         showToast(`${name}은(는) 이미 위시리스트에 있습니다.`, 'info');
       } else if (result === 'added') {
+        logInteraction({ itemType: 'product', itemId: product.id ?? product.reportNo, action: 'wish' });
         showToast(`${name}이(가) 위시리스트에 추가되었습니다.`, 'success');
       } else {
         showToast(`${name}이(가) 위시리스트에서 제거되었습니다.`, 'success');

@@ -1,7 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import Button from '../Common/Button';
 import QuickActionBar from './QuickActionBar';
+import RecipeProductSection from '../Recommendation/RecipeProductSection';
+import SimilarUserRecipesSection from '../Recommendation/SimilarUserRecipesSection';
+import { extractRecipeTitle } from '../../utils/chatRecipe';
 import {
   Bubble,
   BubbleMeta,
@@ -28,6 +31,7 @@ function ChatWindow({
   inputRef,
   onInputChange,
   onSend,
+  onAskQuestion,
   quickActions,
 }) {
   const bottomRef = useRef(null);
@@ -55,24 +59,34 @@ function ChatWindow({
           </WelcomeBox>
         )}
 
+        {messages.length === 0 && !isLoading && (
+          <SimilarUserRecipesSection onAskChat={onAskQuestion} />
+        )}
+
         {messages.map(message => (
-          <Bubble key={message.id} $role={message.role}>
-            <BubbleMeta>
-              {message.role === 'user' ? '나' : 'AI'}
-              {message.role === 'user' && message.kind && <KindTag>{KIND_LABEL[message.kind]}</KindTag>}
-              {message.role === 'assistant' && <KindTag>{KIND_LABEL[message.kind] ?? GUIDE_LABEL}</KindTag>}
-              {message.candidateIndex != null && (
-                <KindTag>후보 {message.candidateIndex + 1}번</KindTag>
+          <Fragment key={message.id}>
+            <Bubble $role={message.role}>
+              <BubbleMeta>
+                {message.role === 'user' ? '나' : 'AI'}
+                {message.role === 'user' && message.kind && <KindTag>{KIND_LABEL[message.kind]}</KindTag>}
+                {message.role === 'assistant' && <KindTag>{KIND_LABEL[message.kind] ?? GUIDE_LABEL}</KindTag>}
+              </BubbleMeta>
+              {message.role === 'assistant' ? (
+                <MarkdownBody>
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                </MarkdownBody>
+              ) : (
+                message.content
               )}
-            </BubbleMeta>
-            {message.role === 'assistant' ? (
-              <MarkdownBody>
-                <ReactMarkdown>{message.content}</ReactMarkdown>
-              </MarkdownBody>
-            ) : (
-              message.content
+            </Bubble>
+            {/* ① 추천 답변 카드 바로 아래: 이 요리에 맞는 추천 상품 */}
+            {message.role === 'assistant' && message.kind === 'recipe' && (
+              <RecipeProductSection
+                recipeTitle={extractRecipeTitle(message.content)}
+                ingredients={message.content}
+              />
             )}
-          </Bubble>
+          </Fragment>
         ))}
 
         {quickActions && !isLoading && (

@@ -12,3 +12,5 @@ bcrypt
 email-validator
 pyjwt
 httpx
+numpy
+scikit-learn

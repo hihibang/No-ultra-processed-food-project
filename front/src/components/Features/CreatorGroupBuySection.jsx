@@ -1,4 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { logInteraction } from '../../api/recommendationApi';
+import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../hooks/useToast';
+import CrossDomainSection from '../Recommendation/CrossDomainSection';
 import {
   SectionWrapper,
   SectionHeader,
@@ -15,6 +19,11 @@ import {
 } from './styles/CreatorGroupBuySection.styles';
 
 function CreatorGroupBuySection() {
+  const { isLoggedIn } = useAuth();
+  const { showToast } = useToast();
+  const [selectedCreatorId, setSelectedCreatorId] = useState(null);
+  const [wishedCreatorIds, setWishedCreatorIds] = useState([]);
+
   const creators = [
     {
       id: 1,
@@ -57,7 +66,23 @@ function CreatorGroupBuySection() {
 
   const handleCreatorClick = (creator) => {
     console.log('크리에이터 클릭:', creator.name);
+    setSelectedCreatorId(creator.id);
   };
+
+  // 크리에이터 찜: 행동 로그(influencer wish)를 남기고 화면 상태를 바꾼다 (찜 목록 조회 API는 아직 없어 새로고침 시 초기화)
+  const handleCreatorWish = (creator) => {
+    if (!isLoggedIn) {
+      showToast('로그인 후 크리에이터를 찜할 수 있어요.', 'info');
+      return;
+    }
+    const wished = wishedCreatorIds.includes(creator.id);
+    setWishedCreatorIds(prev => (wished ? prev.filter(id => id !== creator.id) : [...prev, creator.id]));
+    if (!wished) {
+      logInteraction({ itemType: 'influencer', itemId: `creator-${creator.id}`, action: 'wish', label: creator.name });
+    }
+  };
+
+  const activeCreator = creators.find(creator => creator.id === selectedCreatorId) ?? creators[0];
 
   return (
     <SectionWrapper>
@@ -82,6 +107,12 @@ function CreatorGroupBuySection() {
                 onClick={() => handleCreatorClick(creator)}
               >
                 레시피 확인하기 →
+              </CardButton>
+              <CardButton
+                size="sm"
+                onClick={() => handleCreatorWish(creator)}
+              >
+                {wishedCreatorIds.includes(creator.id) ? '❤️ 찜함' : '🤍 크리에이터 찜하기'}
               </CardButton>
             </CardContent>
           </CardWrapper>
@@ -109,6 +140,13 @@ function CreatorGroupBuySection() {
           </CardWrapper>
         ))}
       </GridContainer>
+
+      {/* ③ 인플루언서 팬덤 Cross-Domain 추천: 선택한 크리에이터를 찜한 사람들이 함께 찜한 상품·레시피 */}
+      <CrossDomainSection
+        targetType="influencer"
+        targetId={`creator-${activeCreator.id}`}
+        title={`${activeCreator.name} 팬들이 함께 찜한 상품 & 레시피`}
+      />
     </SectionWrapper>
   );
 }

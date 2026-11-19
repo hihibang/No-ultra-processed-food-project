@@ -45,10 +45,7 @@ def decode_access_token(token: str) -> int:
         raise CREDENTIALS_ERROR
 
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    db: AsyncSession = Depends(get_db),
-) -> dict:
+async def resolve_current_user(credentials: HTTPAuthorizationCredentials | None, db: AsyncSession) -> dict:
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise CREDENTIALS_ERROR
 
@@ -57,3 +54,20 @@ async def get_current_user(
     if not user or not user["is_active"]:
         raise CREDENTIALS_ERROR
     return user
+
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    return await resolve_current_user(credentials, db)
+
+
+async def get_optional_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> dict | None:
+    # 토큰이 없으면 비로그인(None), 토큰이 있으면 유효성을 검증한다 (잘못된 토큰은 401)
+    if credentials is None:
+        return None
+    return await resolve_current_user(credentials, db)

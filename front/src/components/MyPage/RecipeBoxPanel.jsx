@@ -14,6 +14,8 @@ import {
   Panel,
 } from '../../pages/styles/MyPage.styles';
 import { RecipeDetails, RecipeQuestion } from './styles/RecipeBoxPanel.styles';
+import CrossDomainSection from '../Recommendation/CrossDomainSection';
+import { toRecipeKey } from '../../utils/chatRecipe';
 
 const formatDateTime = (value) =>
   new Date(value).toLocaleString('ko-KR', {
@@ -99,6 +101,12 @@ function RecipeBoxPanel() {
                 <ReactMarkdown>{log.content?.markdown ?? ''}</ReactMarkdown>
               </MarkdownBody>
             </RecipeDetails>
+            {/* ③ 레시피 팬덤 Cross-Domain 추천: 이 레시피를 저장한 사람들이 함께 찜한 상품·레시피 */}
+            <CrossDomainSection
+              targetType="recipe"
+              targetId={toRecipeKey(log.title)}
+              title="이 레시피를 좋아하는 분들이 함께 찜한 상품 & 레시피"
+            />
           </ComparisonCard>
         ))}
       </ComparisonList>

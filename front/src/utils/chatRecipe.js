@@ -36,3 +36,6 @@ export const findOriginalQuestion = (messages, recipeIndex) => {
   }
   return null;
 };
+
+// 레시피 식별 키: 백엔드 recommendation_service.recipe_key 와 같은 규칙 (공백 제거, 소문자)
+export const toRecipeKey = (title) => String(title ?? '').replace(/\s+/g, '').toLowerCase();

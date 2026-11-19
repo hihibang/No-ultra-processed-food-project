@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { logInteraction } from '../../api/recommendationApi';
+import SmartCompareModal from '../Recommendation/SmartCompareModal';
 import { useCart } from '../../hooks/useCart';
 import { useCompare } from '../../hooks/useCompare';
-import { useToast } from '../../hooks/useToast';
 import { useWishlistToggle } from '../../hooks/useWishlistToggle';
 import { getIcon } from '../../constants/icons';
 import {
@@ -32,8 +33,8 @@ const getMainCategory = (subType) => {
 function ProductCard({ product, onClick }) {
   const { isInWishlist } = useCart();
   const { addToCompare, isInCompare } = useCompare();
-  const { showToast } = useToast();
   const toggleWishlist = useWishlistToggle();
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
 
   if (!product) return null;
 
@@ -59,12 +60,14 @@ function ProductCard({ product, onClick }) {
 
   const handleAddToCompare = (e) => {
     e.stopPropagation();
+    logInteraction({ itemType: 'product', itemId: id, action: 'compare' });
     addToCompare({ ...product, id, name, price });
   };
 
+  // 유사 상품 비교: 건강 점수가 비슷한 동종 제품과 고객 선택률을 모달로 보여준다
   const handleSimilarCompare = (e) => {
     e.stopPropagation();
-    showToast(`${name}과 유사한 상품으로 비교합니다.`, 'info');
+    setIsCompareOpen(true);
   };
 
   return (
@@ -114,6 +117,13 @@ function ProductCard({ product, onClick }) {
           </CompareButtonGroup>
         </div>
       </CardInfo>
+
+      <SmartCompareModal
+        isOpen={isCompareOpen}
+        productId={String(id)}
+        productName={name}
+        onClose={() => setIsCompareOpen(false)}
+      />
     </CardWrapper>
   );
 }
