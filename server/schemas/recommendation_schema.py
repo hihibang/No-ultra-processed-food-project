@@ -94,6 +94,8 @@ class CompareProduct(BaseModel):
     nutrition: dict
     healthDiff: Optional[int] = None
     selectionRate: Optional[int] = None
+    isUpgrade: bool = False
+    upgradeReasons: list[str] = []
 
 
 class CompareBaseProduct(BaseModel):
@@ -113,3 +115,41 @@ class CompareResponse(BaseModel):
     headline: Optional[str] = None
     alternatives: list[CompareProduct]
     topSelected: list[CompareProduct]
+    similarUserWishlists: list["SimilarUserWishlist"] = []
+
+
+class WishedItem(BaseModel):
+    reportNo: str
+    productName: str
+    companyName: Optional[str] = None
+    imageUrl: Optional[str] = None
+
+
+class SimilarUserWishlist(BaseModel):
+    userLabel: str
+    matchedProductName: str
+    matchedCount: int
+    scope: Literal["compare_group", "same_type"]
+    wishedItems: list[WishedItem]
+
+
+class InfluencerRecipeItem(BaseModel):
+    recipeId: int
+    title: str
+    creatorId: str
+    creatorName: str
+    source: Literal["followed_influencer", "similar_user_influencer"]
+    badge: str
+
+
+class InfluencerRecipeListResponse(BaseModel):
+    items: list[InfluencerRecipeItem]
+
+
+class InfluencerRecipeDetail(BaseModel):
+    recipeId: int
+    title: str
+    creatorId: str
+    creatorName: str
+    markdown: str
+

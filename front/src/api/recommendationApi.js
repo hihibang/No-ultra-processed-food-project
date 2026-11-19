@@ -16,6 +16,11 @@ export const recommendationApi = {
   // ④ 스마트 상품 비교
   compareProduct: (productId) =>
     apiRequest(`/api/recommendations/products/${encodeURIComponent(productId)}/compare`),
+  // ⑤ 인플루언서 검수 레시피 후보 (레시피 답변 맥락에서만 호출, 비로그인은 빈 목록)
+  influencerRecipes: ({ limit = 2 } = {}) =>
+    apiRequest(`/api/recommendations/influencer-recipes?limit=${limit}`),
+  influencerRecipeDetail: (recipeId) =>
+    apiRequest(`/api/recommendations/influencer-recipes/${encodeURIComponent(String(recipeId))}`),
 };
 
 // 행동 로그 기록 (찜/비교/저장/클릭). 로그인 상태에서만 보내며, 실패해도 화면 동작에는 영향을 주지 않는다.

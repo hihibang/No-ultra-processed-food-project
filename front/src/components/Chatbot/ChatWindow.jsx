@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import Button from '../Common/Button';
 import QuickActionBar from './QuickActionBar';
 import RecipeProductSection from '../Recommendation/RecipeProductSection';
+import InfluencerRecipeSection from '../Recommendation/InfluencerRecipeSection';
 import SimilarUserRecipesSection from '../Recommendation/SimilarUserRecipesSection';
 import { extractRecipeTitle } from '../../utils/chatRecipe';
 import {
@@ -85,6 +86,10 @@ function ChatWindow({
                 recipeTitle={extractRecipeTitle(message.content)}
                 ingredients={message.content}
               />
+            )}
+            {/* 레시피 답변 맥락에서만: 찜한 크리에이터 / 유사 취향 인플루언서 레시피 (첫 화면에는 노출하지 않음) */}
+            {message.role === 'assistant' && message.kind === 'recipe' && (
+              <InfluencerRecipeSection />
             )}
           </Fragment>
         ))}

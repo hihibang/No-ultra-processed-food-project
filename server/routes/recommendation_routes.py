@@ -9,13 +9,17 @@ from database import get_db
 from schemas.recommendation_schema import (
     CompareResponse,
     CrossDomainResponse,
+    InfluencerRecipeDetail,
+    InfluencerRecipeListResponse,
     InteractionCreateRequest,
     InteractionResponse,
     RecipeProductsRequest,
     RecipeProductsResponse,
     SimilarRecipesResponse,
 )
+from models.influencer_recipe_model import InfluencerRecipeModel
 from utils import recommendation_service as service
+from utils.influencer_recipe_service import influencer_recipe_candidates
 from utils.auth_utils import get_current_user, get_optional_user
 
 router = APIRouter(prefix="/api/recommendations", tags=["Recommendations"])
@@ -63,9 +67,37 @@ async def cross_domain(
 @router.get("/products/{product_id}/compare", response_model=CompareResponse)
 async def compare_product(
     product_id: str,
+    current_user: Optional[dict] = Depends(get_optional_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await service.compare_product(db, product_id)
+    user_id = current_user["user_id"] if current_user else None
+    result = await service.compare_product(db, product_id, user_id)
     if result is None:
         raise HTTPException(status_code=404, detail="상품을 찾을 수 없습니다.")
     return result
+
+
+@router.get("/influencer-recipes", response_model=InfluencerRecipeListResponse)
+async def influencer_recipes(
+    limit: int = Query(2, ge=1, le=2),
+    current_user: Optional[dict] = Depends(get_optional_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # 레시피 답변 맥락에서 호출한다. 검수된 인플루언서 레시피만 후보로 쓰며 유저 커스텀 레시피는 포함되지 않는다.
+    user_id = current_user["user_id"] if current_user else None
+    items = await influencer_recipe_candidates(db, user_id, limit)
+    return {"items": items}
+
+
+@router.get("/influencer-recipes/{recipe_id}", response_model=InfluencerRecipeDetail)
+async def influencer_recipe_detail(recipe_id: int, db: AsyncSession = Depends(get_db)):
+    row = await InfluencerRecipeModel.find_verified(db, recipe_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="레시피를 찾을 수 없습니다.")
+    return {
+        "recipeId": int(row["recipe_id"]),
+        "title": row["recipe_title"],
+        "creatorId": row["creator_id"],
+        "creatorName": row["creator_name"],
+        "markdown": row["recipe_markdown"],
+    }

@@ -5,6 +5,7 @@ import { recommendationApi, logInteraction } from '../../api/recommendationApi';
 import { useWishlistToggle } from '../../hooks/useWishlistToggle';
 import { useCart } from '../../hooks/useCart';
 import { productDetailPath } from '../../utils/product';
+import SimilarUserWishlistSection from './SimilarUserWishlistSection';
 import { ModalOverlay, ModalContent, ModalHeader, ModalTitle, CloseButton, ModalBody } from '../Common/styles/ProductDetailModal.styles';
 import {
   Badge,
@@ -62,6 +63,7 @@ function CompareRow({ item, baseNutrition, best, onOpen, onNavigate }) {
         >
           {item.productName}
         </strong>
+
         <div><MutedText>{item.companyName}</MutedText></div>
       </td>
       <BestCell $best={best.healthScore.has(item.reportNo)}>
@@ -218,6 +220,11 @@ function SmartCompareModal({ isOpen, productId, productName, onClose }) {
                 <Badge>✅ 강조 = 기준 + 비슷한 상품 4개 중 지표별 가장 좋은 값</Badge>
                 {data.sampleSize > 0 && <Badge>표본 {data.sampleSize}명</Badge>}
               </BadgeRow>
+
+              <SimilarUserWishlistSection
+                cards={data.similarUserWishlists}
+                onNavigate={handleNavigateItem}
+              />
             </>
           )}
         </ModalBody>

@@ -447,3 +447,19 @@ CREATE TABLE IF NOT EXISTS user_interactions (
     INDEX idx_interactions_item (item_type, item_id),
     INDEX idx_interactions_user (user_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='추천용 사용자 행동 로그';
+
+-- ========================================================
+-- 인플루언서(크리에이터) 레시피: 운영자가 검수해 등록하는 레시피 풀.
+-- 일반 유저의 커스텀/저장 레시피(chat_sessions, mypage_logs)는 여기에 넣지 않는다.
+-- is_verified = 1 인 행만 추천 후보가 된다.
+-- ========================================================
+CREATE TABLE IF NOT EXISTS influencer_recipes (
+    recipe_id INT AUTO_INCREMENT PRIMARY KEY,
+    creator_id VARCHAR(64) NOT NULL COMMENT '크리에이터 ID (user_interactions.item_id 와 같은 형식, 예: creator-1)',
+    creator_name VARCHAR(100) NOT NULL,
+    recipe_title VARCHAR(255) NOT NULL,
+    recipe_markdown MEDIUMTEXT NOT NULL,
+    is_verified TINYINT(1) NOT NULL DEFAULT 0 COMMENT '운영 검수 완료 여부 (1만 추천 후보)',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_influencer_recipes_creator (creator_id, is_verified)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='인플루언서 검수 레시피';

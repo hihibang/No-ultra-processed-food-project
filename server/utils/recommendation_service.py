@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.interaction_model import InteractionModel
 from models.recommendation_model import RecommendationCatalogModel
+from utils import compare_upgrade
 from utils.comparison_report import build_comparison_item
 
 ACTION_WEIGHTS = {"view": 1.0, "click": 2.0, "compare": 2.0, "wish": 5.0, "save": 5.0}
@@ -722,7 +723,7 @@ async def cross_domain(session: AsyncSession, target_type: str, target_id: str) 
     return {"strategy": strategy, "fanCount": fans, "products": products, "recipes": recipes}
 
 
-async def compare_product(session: AsyncSession, product_id: str) -> dict | None:
+async def compare_product(session: AsyncSession, product_id: str, user_id: int | None = None) -> dict | None:
     base_row = await RecommendationCatalogModel.find_by_id(session, product_id)
     if base_row is None:
         return None
@@ -732,26 +733,37 @@ async def compare_product(session: AsyncSession, product_id: str) -> dict | None
     base_key = ("product", product_id)
     sample_size, rates = selection_summary(base_key, ctx.wished, ctx.engaged)
 
+    # 같은 유형 안에서 열량이 가까운 상품들을 비교 풀로 쓴다
     near_rows = await RecommendationCatalogModel.find_same_type_near(
         session, base_row["product_type"], float(base_row["calories"] or 0.0), product_id, CANDIDATE_LIMIT,
     )
-    alternatives = pick_closest_health(base, [build_comparison_item(r) for r in near_rows], COMPARE_PICK_LIMIT)
+    pool = [build_comparison_item(r) for r in near_rows]
+
+    # 1) 상위 호환(건강 점수·당류·나트륨·NOVA·주의 성분이 더 나은 상품) 우선
+    upgrades = compare_upgrade.pick_upgrades(base, pool, COMPARE_PICK_LIMIT)
+    upgrade_keys = {item["reportNo"] for item, _ in upgrades}
+    # 2) 상위 호환이 부족할 때만 건강 점수가 가장 비슷한 대안으로 남은 자리를 채운다
+    fill_pool = [item for item in pool if item["reportNo"] not in upgrade_keys]
+    fill = pick_closest_health(base, fill_pool, COMPARE_PICK_LIMIT - len(upgrades))
 
     # 선택 비율이 높은 상품도 함께 보여준다 (동종이 아니어도 실제 고객 선택 기준)
     top_keys = sorted(rates, key=lambda k: (-rates[k], k[1]))[:COMPARE_PICK_LIMIT]
     top_rows = await RecommendationCatalogModel.find_by_ids(session, [k[1] for k in top_keys])
     top_selected = [build_comparison_item(r) for r in top_rows]
 
-    def _with_selection(item: dict) -> dict:
+    def _with_selection(item: dict, reasons: list[str]) -> dict:
         rate = rates.get(("product", item["reportNo"]))
         return {
             **_strip_score_fields(item),
             "healthDiff": item["healthScore"] - base["healthScore"],
             "selectionRate": round(rate * 100) if (sample_size and rate is not None) else (0 if sample_size else None),
+            "isUpgrade": bool(reasons),
+            "upgradeReasons": reasons,
         }
 
-    alt_payload = [_with_selection(item) for item in alternatives]
-    top_payload = [_with_selection(item) for item in top_selected if item["reportNo"] != product_id]
+    alt_payload = [_with_selection(item, reasons) for item, reasons in upgrades]
+    alt_payload += [_with_selection(item, []) for item in fill]
+    top_payload = [_with_selection(item, []) for item in top_selected if item["reportNo"] != product_id]
 
     best = max(
         (item for item in alt_payload + top_payload if item["selectionRate"]),
@@ -762,12 +774,29 @@ async def compare_product(session: AsyncSession, product_id: str) -> dict | None
         f"이 상품을 찜한 고객의 {best['selectionRate']}%가 선택한 상품: {best['productName']}"
         if best else None
     )
+
+    # 3) 비교 상품군(기준 + 대안)을 찜한 다른 유저의 찜 리스트 (데이터가 없으면 빈 목록)
+    group_keys = {base_key} | {("product", item["reportNo"]) for item in alt_payload}
+    wished_keys = set().union(*ctx.wished.values()) if ctx.wished else set()
+    product_ids = {key[1] for key in wished_keys if key[0] == "product"} | {key[1] for key in group_keys}
+    catalog_rows = await RecommendationCatalogModel.find_by_ids(session, sorted(product_ids))
+    names = {str(r["report_no"]): {
+        "productName": r["product_name"], "companyName": r["company_name"], "imageUrl": r.get("image_url"),
+        "productType": r["product_type"],
+    } for r in catalog_rows}
+    same_type_keys = {("product", rn) for rn, info in names.items()
+                      if info["productType"] == base_row["product_type"]}
+    wishlists = compare_upgrade.similar_user_wishlists(
+        ctx.wished, ctx.affinity, group_keys, same_type_keys, names, user_id,
+    )
+
     return {
         "baseProduct": _strip_score_fields(base),
         "sampleSize": sample_size,
         "headline": headline,
         "alternatives": alt_payload,
         "topSelected": top_payload,
+        "similarUserWishlists": wishlists,
     }
 
 
