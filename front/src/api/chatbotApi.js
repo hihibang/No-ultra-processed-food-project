@@ -3,6 +3,7 @@
 // - 후속 질문: 로컬 백엔드 POST /api/chat/followup (OpenAI 직접 호출, RAG 미사용, 로그인 필요)
 // - OpenAI API 키는 프론트에 두지 않는다. 키는 서버(server/.env)와 n8n 측에서만 관리한다.
 import { apiRequest } from './http';
+import { APPLIANCE_BLOCKED_MESSAGE, findApplianceViolations } from '../utils/applianceRules';
 
 const RECIPE_WEBHOOK_URL = import.meta.env.VITE_N8N_RECIPE_WEBHOOK_URL;
 
@@ -50,6 +51,17 @@ const pickProfile = (profile) => ({
   restrictions: profile.restrictions,
 });
 
+// 설정하지 않은 조리도구/불 조리가 들어간 후보는 버린다. 전부 버려지면 안내 오류로 처리한다.
+const enforceAppliances = (result, profile) => {
+  const recipes = result.recipes.filter(r => findApplianceViolations(r.content, profile?.appliances).length === 0);
+  if (result.recipes.length > 0) {
+    if (recipes.length === 0) throw new ChatbotError(APPLIANCE_BLOCKED_MESSAGE);
+    return { answer: recipes[0].content, recipes };
+  }
+  if (findApplianceViolations(result.answer, profile?.appliances).length > 0) throw new ChatbotError(APPLIANCE_BLOCKED_MESSAGE);
+  return result;
+};
+
 async function postToRecipeWebhook(payload) {
   if (!RECIPE_WEBHOOK_URL) {
     throw new ChatbotError('챗봇 서버 주소가 설정되지 않았습니다. (.env의 VITE_N8N_RECIPE_WEBHOOK_URL 확인)');
@@ -81,7 +93,7 @@ async function postToRecipeWebhook(payload) {
   }
 
   const data = await response.json().catch(() => null);
-  return extractRecipeResult(data);
+  return enforceAppliances(extractRecipeResult(data), payload.profile);
 }
 
 // 1차 레시피 추천 (n8n 벡터 검색 워크플로우)

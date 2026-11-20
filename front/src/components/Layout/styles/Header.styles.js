@@ -84,7 +84,7 @@ export const SubTitle = styled.div`
 
 /* 검색창 래퍼 */
 export const SearchBoxWrapper = styled.div`
-  width: 280px;
+  width: clamp(280px, 32vw, 460px); /* 화면 폭에 맞춰 280~460px */
   flex-shrink: 0;
 `;
 

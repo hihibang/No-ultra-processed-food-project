@@ -5,7 +5,7 @@ import QuickActionBar from './QuickActionBar';
 import RecipeProductSection from '../Recommendation/RecipeProductSection';
 import InfluencerRecipeSection from '../Recommendation/InfluencerRecipeSection';
 import SimilarUserRecipesSection from '../Recommendation/SimilarUserRecipesSection';
-import { extractRecipeTitle } from '../../utils/chatRecipe';
+import { extractRecipeTitle, findOriginalQuestion } from '../../utils/chatRecipe';
 import {
   Bubble,
   BubbleMeta,
@@ -41,6 +41,9 @@ function ChatWindow({
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages.length, isLoading]);
 
+  // 크리에이터 카드는 가장 최근 레시피 답변에만 붙인다 (답변마다 반복 노출·반복 호출 방지)
+  const lastRecipeId = [...messages].reverse().find(m => m.role === 'assistant' && m.kind === 'recipe')?.id;
+
   const handleKeyDown = (e) => {
     // 한글 조합 중 Enter는 전송하지 않는다
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -64,7 +67,7 @@ function ChatWindow({
           <SimilarUserRecipesSection onAskChat={onAskQuestion} />
         )}
 
-        {messages.map(message => (
+        {messages.map((message, index) => (
           <Fragment key={message.id}>
             <Bubble $role={message.role}>
               <BubbleMeta>
@@ -85,10 +88,11 @@ function ChatWindow({
               <RecipeProductSection
                 recipeTitle={extractRecipeTitle(message.content)}
                 ingredients={message.content}
+                question={findOriginalQuestion(messages, index)}
               />
             )}
             {/* 레시피 답변 맥락에서만: 찜한 크리에이터 / 유사 취향 인플루언서 레시피 (첫 화면에는 노출하지 않음) */}
-            {message.role === 'assistant' && message.kind === 'recipe' && (
+            {message.role === 'assistant' && message.kind === 'recipe' && message.id === lastRecipeId && (
               <InfluencerRecipeSection />
             )}
           </Fragment>

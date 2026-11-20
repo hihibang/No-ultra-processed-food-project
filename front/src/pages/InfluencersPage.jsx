@@ -84,7 +84,14 @@ function InfluencersPage() {
 
   const renderCreatorCard = (creator, { active = false } = {}) => (
     <SelectableCard key={creator.creatorId} $active={active}>
-      <CardName onClick={() => setSelectedId(creator.creatorId)} style={{ cursor: 'pointer' }}>{creator.name}</CardName>
+      <CardName onClick={() => setSelectedId(creator.creatorId)} style={{ cursor: 'pointer' }}>
+        {creator.avatar ? `${creator.avatar} ` : ''}{creator.name}
+      </CardName>
+      {creator.concept && <CardSub><strong>{creator.concept}</strong></CardSub>}
+      {creator.bio && <CardSub>{creator.bio}</CardSub>}
+      {creator.tags?.length > 0 && (
+        <BadgeRow>{creator.tags.map(tag => <Badge key={tag}>#{tag}</Badge>)}</BadgeRow>
+      )}
       <CardSub>레시피 {creator.recipeCount}개</CardSub>
       <BadgeRow>
         <SmallButton type="button" onClick={() => setSelectedId(creator.creatorId)}>레시피 보기</SmallButton>

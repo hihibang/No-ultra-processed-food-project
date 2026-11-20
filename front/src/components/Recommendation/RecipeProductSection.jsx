@@ -20,7 +20,7 @@ import {
 } from './styles/Recommendation.styles';
 
 // ① 챗봇 추천 답변 카드 하단: 이 요리에 맞는 상품 (찜한 재료 · 유사 취향 Pick 배지)
-function RecipeProductSection({ recipeTitle, ingredients }) {
+function RecipeProductSection({ recipeTitle, ingredients, question }) {
   const { isInWishlist } = useCart();
   const toggleWishlist = useWishlistToggle();
   const navigate = useNavigate();
@@ -30,11 +30,11 @@ function RecipeProductSection({ recipeTitle, ingredients }) {
   useEffect(() => {
     let cancelled = false;
     setState({ status: 'loading', items: [] });
-    recommendationApi.recipeProducts({ recipeTitle, ingredients })
+    recommendationApi.recipeProducts({ recipeTitle, ingredients, question })
       .then(result => { if (!cancelled) setState({ status: 'ready', items: result.items }); })
       .catch(() => { if (!cancelled) setState({ status: 'error', items: [] }); });
     return () => { cancelled = true; };
-  }, [recipeTitle, ingredients]);
+  }, [recipeTitle, ingredients, question]);
 
   // 로딩 중·에러·추천 0개면 제목과 안내 문구까지 전부 숨긴다
   if (state.status !== 'ready' || state.items.length === 0) return null;

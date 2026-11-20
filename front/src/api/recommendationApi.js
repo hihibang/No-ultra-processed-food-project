@@ -3,10 +3,10 @@ import { apiRequest } from './http';
 
 export const recommendationApi = {
   // ① 레시피 맞춤 상품 (비로그인도 콘텐츠 기준으로 응답)
-  recipeProducts: ({ recipeTitle, ingredients }) =>
+  recipeProducts: ({ recipeTitle, ingredients, question }) =>
     apiRequest('/api/recommendations/recipe-products', {
       method: 'POST',
-      body: { recipe_title: recipeTitle, ingredients },
+      body: { recipe_title: recipeTitle, ingredients, question: question ?? null },
     }),
   // ② 취향이 비슷한 유저가 저장한 레시피 (로그인 필요)
   similarUserRecipes: () => apiRequest('/api/recommendations/similar-users/recipes'),
