@@ -23,6 +23,7 @@ class InteractionResponse(BaseModel):
 class RecipeProductsRequest(BaseModel):
     recipe_title: str = Field(..., min_length=1, max_length=255)
     ingredients: Union[list[str], str] = Field(default_factory=list)
+    question: Optional[str] = Field(default=None, max_length=1000)  # 사용자가 요청한 원래 질문 (재료 키워드 보완용)
 
 
 class ProductRecommendation(BaseModel):
@@ -160,6 +161,10 @@ class InfluencerCreatorItem(BaseModel):
     recipeCount: int
     isFollowed: bool
     communityScore: float
+    avatar: Optional[str] = None
+    concept: Optional[str] = None
+    bio: Optional[str] = None
+    tags: list[str] = []
 
 
 class InfluencerCreatorListResponse(BaseModel):

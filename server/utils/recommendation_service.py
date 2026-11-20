@@ -21,6 +21,7 @@ from models.interaction_model import InteractionModel
 from models.recommendation_model import RecommendationCatalogModel
 from utils import compare_upgrade
 from utils.comparison_report import build_comparison_item
+from utils.search_synonyms import expand_keyword, normalize
 
 ACTION_WEIGHTS = {"view": 1.0, "click": 2.0, "compare": 2.0, "wish": 5.0, "save": 5.0}
 WISH_ACTIONS = frozenset({"wish", "save"})
@@ -31,7 +32,10 @@ PROFILE_WEIGHT = 1.0
 PROFILE_TYPE = "profile"
 
 RECIPE_PICK_LIMIT = 6
-PRODUCT_PICK_LIMIT = 3  # 레시피 → 상품 추천은 상위 3개만 노출
+PRODUCT_PICK_LIMIT = 3  # 레시피 → 상품 추천 기본 노출 수
+PRODUCT_COVERAGE_LIMIT = 6  # 재료·질문 키워드별로 하나씩 보장하되 최대 이만큼만 노출
+GROUP_CANDIDATE_LIMIT = 60  # 키워드 그룹별 후보 조회 수 (흔한 재료가 다른 재료를 밀어내지 않게 따로 조회)
+QUESTION_KEYWORD_LIMIT = 6
 CROSS_PICK_LIMIT = 4
 COMPARE_PICK_LIMIT = 3
 CANDIDATE_LIMIT = 200
@@ -104,6 +108,17 @@ def time_decay(created_at: Optional[datetime], now: datetime) -> float:
     return 0.5 ** (age_days / HALF_LIFE_DAYS)
 
 
+# 레시피 제목이 아니라 섹션 제목인 값 (예전에 잘못 저장된 보관 레시피를 추천에서 걸러낸다)
+SECTION_HEADING_TITLES = frozenset({
+    "재료", "재료준비", "준비물", "필요한도구", "조리순서", "조리방법", "팁", "영양정보",
+    "주재료", "부재료", "메인재료", "양념", "소스", "육수", "요리팁", "맞춤형요리팁", "맞춤요리팁", "조리팁",
+})
+
+
+def is_section_heading_title(title: str | None) -> bool:
+    return re.sub(r"[\s:：]+", "", str(title or "")) in SECTION_HEADING_TITLES
+
+
 def recipe_key(title: str | None) -> str:
     # 레시피 식별자: 공백을 없애고 소문자로 맞춘 제목 (레시피 테이블 PK가 없으므로 제목으로 대신한다)
     return re.sub(r"\s+", "", str(title or "")).lower()
@@ -117,7 +132,7 @@ _INGREDIENT_HEADING_RE = re.compile(r"^(재료|재료\s*준비|준비물)\b")
 _STEP_LINE_RE = re.compile(r"^\d+[.)]\s")
 _TIP_LINE_RE = re.compile(r"^(※|팁|TIP|Tip)")
 _QTY_RE = re.compile(
-    r"\d+(\.\d+)?\s*(g|kg|ml|l|개|큰술|작은술|스푼|컵|T|t|cm|장|쪽|줌|꼬집|모|알|대|인분|개입)?\b|약간|적당량|조금",
+    r"\d+(\.\d+)?\s*(g|kg|ml|l|개|큰술|작은술|스푼|컵|T|t|cm|장|쪽|줌|꼬집|모|알|대|인분|개입|공기|마리|캔|봉지|봉|팩|송이|통|포기|단|조각|토막)?\b|약간|적당량|조금",
     re.IGNORECASE,
 )
 # 재료 앞에 붙는 손질·상태 표현 ("다진 돼지고기" → "돼지고기", "저염 간장" → "간장")
@@ -130,7 +145,7 @@ SEASONING_TERMS = (
     "간장", "액젓", "젓갈", "새우젓", "멸치젓", "소금", "천일염", "설탕", "스테비아", "올리고당", "물엿", "조청",
     "식용유", "올리브유", "올리브오일", "참기름", "들기름", "포도씨유", "식용유지",
     "후추", "후춧가루", "고춧가루", "고추가루", "파프리카", "커민", "카옌", "카이엔", "페퍼", "향신료", "허브",
-    "고추장", "된장", "쌈장", "춘장", "식초", "미림", "맛술", "굴소스", "케첩", "마요네즈", "머스타드", "머스터드",
+    "고추장", "된장", "쌈장", "춘장", "식초", "미림", "맛술", "굴소스", "케첩", "케찹", "마요네즈", "머스타드", "머스터드",
     "칠리소스", "스리라차", "다시마가루", "쯔유",
 )
 
@@ -325,7 +340,7 @@ def build_events(
 
     for row in recipe_logs:
         key = recipe_key(row["title"])
-        if not key:
+        if not key or is_section_heading_title(row["title"]):
             continue
         titles.setdefault(key, row["title"])
         if row.get("markdown"):
@@ -337,6 +352,8 @@ def build_events(
 
     for row in interactions:
         item_id = str(row["item_id"])
+        if row["item_type"] == "recipe" and is_section_heading_title(row.get("label") or item_id):
+            continue
         if row["item_type"] == "recipe" and row.get("label"):
             titles.setdefault(item_id, row["label"])
         events.append({"user_id": row["user_id"], "item_type": row["item_type"], "item_id": item_id,
@@ -601,6 +618,8 @@ def match_score(keyword: str, product_name: str | None, raw_materials: str | Non
         name = 0.9
     elif any(kw in t for t in name_tokens):
         name = 0.6
+    elif len(kw) >= 3 and kw in "".join(name_tokens):
+        name = 0.9  # 띄어쓰기 차이 ("닭 가슴살" ↔ 닭가슴살)
     else:
         name = 0.0
 
@@ -649,31 +668,130 @@ def rank_product_candidates(candidates: list[dict], wished_keys: set, cf_scores:
     return [item for _, item in ranked[:limit]]
 
 
+# ---------------------------------------------------------------------------
+# 연관상품 키워드 보완: 질문 맥락·변형 메뉴명·유의어·부분 일치
+# ---------------------------------------------------------------------------
+
+# 요리 이름 끝에 붙는 조리 형태. 떼어내면 핵심 재료가 남는다 ("김치볶음밥" → "김치", "된장찌개" → "된장")
+DISH_SUFFIXES = tuple(sorted((
+    "볶음밥", "덮밥", "비빔밥", "볶음", "찌개", "전골", "조림", "구이", "튀김", "무침", "샐러드", "스테이크",
+    "국밥", "국", "탕", "찜", "전", "죽", "밥", "면", "파스타", "스프", "수프", "샌드위치", "카레", "장아찌",
+), key=len, reverse=True))
+# 질문 문장에서 재료가 아닌 표현
+QUESTION_NOISE_PREFIXES = (
+    "알려", "추천", "만들", "해줘", "해주", "먹고", "먹을", "먹지", "싶", "있어", "있는", "없어", "없는", "어떻", "어때",
+    "뭐", "뭘", "어떤", "저녁", "점심", "아침", "야식", "간단", "맛있", "건강", "다이어트", "레시피", "요리", "방법",
+    "가능", "해먹", "냉장고", "집에", "오늘", "내일", "조금", "많이", "정도", "그리고", "하고", "해서", "으로", "이용",
+)
+
+
+def _dedupe(items: Iterable[str]) -> list[str]:
+    return list(dict.fromkeys(item for item in items if item))
+
+
+def dish_stems(name: str) -> list[str]:
+    """요리 이름에서 핵심 재료 후보를 뽑는다. 조리 형태(볶음밥·찌개 등)를 실제로 떼어낸 경우에만 후보를 만들고,
+    남은 말이 길면 앞·뒤 2글자도 후보로 쓴다 ("참치김치볶음밥" → 참치김치, 참치, 김치). 조리 형태가 없으면 아무것도 만들지 않는다."""
+    original = re.sub(r"[^가-힣A-Za-z]", "", name or "")
+    for suffix in DISH_SUFFIXES:
+        if original.endswith(suffix) and len(original) - len(suffix) >= 2:
+            stem = original[: -len(suffix)]
+            parts = [stem] + ([stem[:2], stem[-2:]] if len(stem) >= 4 else [])
+            return [part for part in _dedupe(parts) if part not in INGREDIENT_STOPWORDS]
+    return []
+
+
+def extract_question_keywords(question: str | None, limit: int = QUESTION_KEYWORD_LIMIT) -> list[str]:
+    """사용자 질문에서 재료 후보를 뽑는다. 조사·요청 표현은 버리고, 요리 이름이면 핵심 재료도 함께 뽑는다.
+    잘못 뽑힌 단어는 상품 매칭 단계(점수 임계값)에서 걸러지므로 넓게 잡는다."""
+    keywords: list[str] = []
+    for raw in re.findall(r"[가-힣A-Za-z]{2,}", question or ""):
+        token = _strip_particle(re.sub(r"(이랑|하고|랑|이나)$", "", raw))
+        if len(token) < 2 or token in INGREDIENT_STOPWORDS or token in DISH_SUFFIXES or token.startswith(QUESTION_NOISE_PREFIXES):
+            continue
+        keywords.append(token)
+        keywords.extend(dish_stems(token))
+    return _dedupe(keywords)[:limit]
+
+
+def build_keyword_groups(keywords: Iterable[str]) -> list[list[str]]:
+    """키워드마다 '같은 재료로 볼 표기' 묶음을 만든다: 유의어(계란↔달걀) + 여러 단어 재료의 각 단어("청양 고추" → 고추).
+    앞선 키워드가 이미 쓴 표기는 중복 그룹으로 만들지 않는다."""
+    groups: list[list[str]] = []
+    seen: set[str] = set()
+    for keyword in keywords:
+        if normalize(keyword) in seen:
+            continue
+        terms = expand_keyword(keyword)
+        parts = [normalize(w) for w in re.split(r"\s+", keyword.strip()) if len(w) >= 2 and w not in INGREDIENT_STOPWORDS]
+        if len(parts) > 1:
+            terms += parts
+        terms = [t for t in _dedupe(terms) if t not in seen and t not in INGREDIENT_STOPWORDS]
+        if not terms:
+            continue
+        seen.update(terms)
+        groups.append(terms)
+    return groups
+
+
+def pick_with_coverage(grouped: list[list[dict]], ranked_all: list[dict], min_count: int, max_count: int) -> list[dict]:
+    """키워드 그룹마다 대표 상품을 하나씩 먼저 고르고(재료 누락 방지), 모자라면 전체 순위로 채운다."""
+    picked: list[dict] = []
+    seen: set[str] = set()
+    for group_items in grouped:
+        for item in group_items:
+            if item["reportNo"] not in seen:
+                seen.add(item["reportNo"])
+                picked.append(item)
+                break
+        if len(picked) >= max_count:
+            return picked[:max_count]
+    for item in ranked_all:
+        if len(picked) >= min_count:
+            break
+        if item["reportNo"] not in seen:
+            seen.add(item["reportNo"])
+            picked.append(item)
+    return picked
+
+
 async def recipe_products(
     session: AsyncSession,
     user_id: int | None,
     recipe_title: str,
     ingredients,
     limit: int = PRODUCT_PICK_LIMIT,
+    question: str | None = None,
 ) -> dict:
-    keywords = extract_keywords(recipe_title, ingredients)
-    if not keywords:
+    # 키워드 우선순위: 1) 추천 레시피의 재료 2) 레시피 제목의 핵심 재료(변형 메뉴 대비) 3) 사용자 질문의 재료
+    recipe_keywords = extract_keywords(recipe_title, ingredients)
+    keywords = _dedupe([*recipe_keywords, *dish_stems(recipe_title), *extract_question_keywords(question)])
+    groups = build_keyword_groups(keywords)
+    if not groups:
         return {"strategy": "none", "items": []}
-
-    rows = await RecommendationCatalogModel.search_by_keywords(
-        session, keywords, CANDIDATE_LIMIT, INGREDIENT_PRODUCT_TYPES,
-    )
-    matched = select_ingredient_matches(rows, keywords)
-    if not matched:
-        # 재료에 맞는 상품이 없으면 억지로 채우지 않는다 (프론트는 빈 배열이면 섹션을 숨긴다)
-        return {"strategy": "none", "items": []}
-    candidates = [build_comparison_item(row) for row, _ in matched]
 
     ctx = await load_context(session)
     neighbors = ctx.neighbors_of(user_id)
     cf_scores = score_neighbor_items(ctx.affinity, neighbors, "product", set()) if neighbors else {}
     wished_keys = ctx.wished.get(user_id, set()) if user_id is not None else set()
-    picked = rank_product_candidates(candidates, wished_keys, cf_scores, limit)
+
+    grouped: list[list[dict]] = []
+    every: dict[str, dict] = {}
+    for terms in groups:  # 키워드 묶음별로 따로 조회해 흔한 재료가 드문 재료의 후보를 밀어내지 않게 한다
+        rows = await RecommendationCatalogModel.search_by_keywords(
+            session, terms, GROUP_CANDIDATE_LIMIT, INGREDIENT_PRODUCT_TYPES,
+        )
+        matched = select_ingredient_matches(rows, terms)
+        items = rank_product_candidates([build_comparison_item(row) for row, _ in matched], wished_keys, cf_scores, len(matched))
+        grouped.append(items)
+        every.update({item["reportNo"]: item for item in items})
+    if not every:
+        # 재료에 맞는 상품이 없으면 억지로 채우지 않는다 (프론트는 빈 배열이면 섹션을 숨긴다)
+        return {"strategy": "none", "items": []}
+
+    ranked_all = rank_product_candidates(list(every.values()), wished_keys, cf_scores, len(every))
+    max_count = max(limit, PRODUCT_COVERAGE_LIMIT)
+    picked = pick_with_coverage(grouped, ranked_all, limit, max_count)
 
     strategy = "collaborative" if any(item["cfScore"] > 0 for item in picked) else "content"
     return {"strategy": strategy, "items": picked}

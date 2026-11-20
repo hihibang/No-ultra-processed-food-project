@@ -75,6 +75,49 @@ class NeighborTest(unittest.TestCase):
         self.assertEqual(rs.find_neighbors([1, 2], np.ones((2, 2)), None), [])
 
 
+class SectionHeadingTitleTest(unittest.TestCase):
+    def test_section_headings_are_not_recipe_titles(self):
+        for title in ("주재료", "맞춤형 요리 팁", "요리 팁", "재료:"):
+            self.assertTrue(rs.is_section_heading_title(title), title)
+        self.assertFalse(rs.is_section_heading_title("된장찌개"))
+
+    def test_build_events_skips_heading_titled_recipe_logs(self):
+        logs = [
+            {"user_id": 1, "title": "맞춤형 요리 팁", "markdown": "x", "created_at": datetime(2026, 1, 1)},
+            {"user_id": 1, "title": "된장찌개", "markdown": "y", "created_at": datetime(2026, 1, 1)},
+        ]
+        events, titles, _ = rs.build_events([], [], logs, [])
+        self.assertEqual([e["item_id"] for e in events], ["된장찌개"])
+        self.assertEqual(list(titles), ["된장찌개"])
+
+
+class ProductKeywordTest(unittest.TestCase):
+    def test_dish_stems_strip_cooking_form_to_core_ingredients(self):
+        self.assertEqual(rs.dish_stems("참치김치볶음밥"), ["참치김치", "참치", "김치"])
+        self.assertEqual(rs.dish_stems("된장찌개"), ["된장"])
+        self.assertEqual(rs.dish_stems("계란말이"), [])  # 조리 형태가 아니면 쪼개지 않는다
+
+    def test_question_keywords_use_core_ingredients_and_drop_request_words(self):
+        self.assertEqual(rs.extract_question_keywords("청국장이랑 오징어 있는데 뭐 해먹지?"), ["청국장", "오징어"])
+        self.assertEqual(rs.extract_question_keywords("김치볶음밥 알려줘"), ["김치볶음밥", "김치"])
+
+    def test_keyword_groups_include_synonyms_and_words_of_multiword_items(self):
+        self.assertEqual(rs.build_keyword_groups(["오뎅"]), [["오뎅", "어묵"]])
+        self.assertEqual(rs.build_keyword_groups(["계란", "달걀"]), [["계란", "달걀"]])  # 이미 묶인 유의어는 중복 그룹 없음
+        self.assertIn("고추", rs.build_keyword_groups(["청양 고추"])[0])
+
+    def test_name_match_ignores_spacing(self):
+        self.assertGreaterEqual(rs.match_score("닭가슴살", "수비드 닭 가슴살", None), 0.6)
+
+    def test_quantity_units_are_not_part_of_ingredient_names(self):
+        self.assertEqual(rs.extract_keywords("", ["참치 1캔", "오징어 1마리", "밥 1공기"]), ["참치", "오징어"])
+
+    def test_pick_with_coverage_gives_each_keyword_one_product_first(self):
+        a1, a2, b1 = ({"reportNo": r} for r in ("a1", "a2", "b1"))
+        picked = rs.pick_with_coverage([[a1, a2], [b1]], [a1, a2, b1], min_count=2, max_count=6)
+        self.assertEqual([p["reportNo"] for p in picked], ["a1", "b1"])
+
+
 class SimilarRecipeTest(unittest.TestCase):
     def _context(self):
         events = [

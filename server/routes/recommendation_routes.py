@@ -50,7 +50,7 @@ async def recipe_products(
     db: AsyncSession = Depends(get_db),
 ):
     user_id = current_user["user_id"] if current_user else None
-    return await service.recipe_products(db, user_id, body.recipe_title, body.ingredients)
+    return await service.recipe_products(db, user_id, body.recipe_title, body.ingredients, question=body.question)
 
 
 @router.get("/similar-users/recipes", response_model=SimilarRecipesResponse)

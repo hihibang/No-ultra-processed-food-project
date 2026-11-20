@@ -474,3 +474,15 @@ CREATE TABLE IF NOT EXISTS influencer_follows (
     PRIMARY KEY (user_id, creator_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='인플루언서 찜(팔로우)';
+
+-- ========================================================
+-- 인플루언서 프로필 (콘셉트·소개). 레시피가 있는 크리에이터만 /influencers 목록에 나오며, 프로필이 없어도 목록은 동작한다.
+-- ========================================================
+CREATE TABLE IF NOT EXISTS influencer_profiles (
+    creator_id VARCHAR(64) PRIMARY KEY COMMENT '크리에이터 ID (influencer_recipes.creator_id 와 같은 값)',
+    avatar VARCHAR(16) NULL COMMENT '프로필 이모지',
+    concept VARCHAR(100) NOT NULL COMMENT '한 줄 콘셉트',
+    bio VARCHAR(300) NULL,
+    tags JSON NULL COMMENT '키워드 배열',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='인플루언서 프로필';

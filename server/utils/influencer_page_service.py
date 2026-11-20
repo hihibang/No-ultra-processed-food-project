@@ -1,5 +1,7 @@
 # utils/influencer_page_service.py
 # /influencers 페이지용 인플루언서 목록·찜 토글·팬덤 점수.
+import json
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.influencer_follow_model import InfluencerFollowModel
@@ -7,6 +9,15 @@ from models.influencer_recipe_model import InfluencerRecipeModel
 from utils.recommendation_service import load_context, score_neighbor_items
 
 INFLUENCER_ITEM_TYPE = "influencer"
+
+
+def _load_tags(raw) -> list[str]:
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except ValueError:
+            return []
+    return [str(tag) for tag in raw] if isinstance(raw, list) else []
 
 
 async def list_influencers(session: AsyncSession, user_id: int | None) -> list[dict]:
@@ -32,6 +43,10 @@ async def list_influencers(session: AsyncSession, user_id: int | None) -> list[d
             "isFollowed": row["creator_id"] in followed,
             # 취향이 비슷한 유저들이 찜한 정도 (0이면 팬덤 추천 근거 없음)
             "communityScore": round(community.get(row["creator_id"], 0.0), 2),
+            "avatar": row.get("avatar"),
+            "concept": row.get("concept"),
+            "bio": row.get("bio"),
+            "tags": _load_tags(row.get("tags")),
         }
         for row in creators
     ]

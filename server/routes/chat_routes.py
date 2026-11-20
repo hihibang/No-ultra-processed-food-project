@@ -9,7 +9,13 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from schemas.chat_schema import FollowupRequest, FollowupResponse
 from utils.auth_utils import get_current_user
-from utils.chat_profile import build_profile_block, normalize_profile, sanitize_text
+from utils.chat_profile import (
+    build_appliance_rules,
+    build_profile_block,
+    find_appliance_violations,
+    normalize_profile,
+    sanitize_text,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +33,7 @@ SYSTEM_RULES = """당신은 초가공식품을 줄이는 건강 요리 도우미
 
 [안전 규칙]
 - 프로필의 '식이 제한 · 현재 상황'은 어떤 경우에도 지켜야 합니다. 알레르기 재료는 대체 재료를 포함해 절대 쓰지 마세요.
-- 사용자가 보유하지 않은 주방 도구는 권하지 말고, 대안이 있으면 그것을 안내하세요.
+- 프로필에서 체크하지 않은 주방 도구는 보유하지 않은 것입니다. 권하지 말고, 사용 가능한 도구로 만드는 대안을 안내하세요.
 
 [대화 규칙]
 - 아래 '현재 추천 레시피'를 기준으로 답하세요. 레시피와 무관한 질문이면 그 사실을 짧게 알리고 요리 관련 질문으로 안내하세요.
@@ -45,6 +51,9 @@ def _build_messages(body: FollowupRequest, profile: dict | None) -> list[dict]:
     system_parts = [SYSTEM_RULES]
     if profile:
         system_parts.append(build_profile_block(profile))
+        appliance_rules = build_appliance_rules(profile)
+        if appliance_rules:
+            system_parts.append("[조리도구 규칙 - 반드시 준수]\n" + "\n".join(appliance_rules))
     if body.recipeContext:
         system_parts.append("[현재 추천 레시피]\n" + _RECIPE_CONTROL_CHARS.sub("", body.recipeContext)[:6000])
 
@@ -58,23 +67,18 @@ def _build_messages(body: FollowupRequest, profile: dict | None) -> list[dict]:
     return messages
 
 
-@router.post("/followup", response_model=FollowupResponse)
-async def followup(
-    body: FollowupRequest,
-    current_user: dict = Depends(get_current_user),
-):
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=503, detail="챗봇 서버 설정이 완료되지 않았습니다.")
+APPLIANCE_RETRY_PROMPT = (
+    "방금 답변에 사용할 수 없는 조리도구 또는 불 조리({found})가 포함됐습니다. "
+    "프로필의 사용 가능한 조리도구만으로 완성되는 조리법으로 처음부터 다시 답하세요. 사과나 설명 없이 레시피만 쓰세요."
+)
+APPLIANCE_FALLBACK_ANSWER = (
+    "현재 '내 취향 설정'의 조리도구만으로는 이 요청을 안전하게 안내하기 어려워요. "
+    "사용 가능한 도구로 만들 수 있는 다른 메뉴를 물어보거나, 마이페이지에서 조리도구 설정을 확인해 주세요."
+)
 
-    model = os.getenv("OPENAI_CHAT_MODEL", DEFAULT_MODEL)
-    profile = normalize_profile(body.profile.model_dump() if body.profile else None)
-    payload = {
-        "model": model,
-        "messages": _build_messages(body, profile),
-        "temperature": 0.5,
-    }
 
+async def _call_openai(api_key: str, model: str, messages: list[dict]) -> dict:
+    payload = {"model": model, "messages": messages, "temperature": 0.5}
     try:
         async with httpx.AsyncClient(timeout=OPENAI_TIMEOUT_SECONDS) as client:
             response = await client.post(
@@ -90,12 +94,43 @@ async def followup(
         # 외부 응답 본문은 로그에만 남기고 클라이언트에는 노출하지 않는다
         logger.error("OpenAI 오류 status=%s body=%s", response.status_code, response.text[:500])
         raise HTTPException(status_code=502, detail="AI 응답을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.")
+    return response.json()
 
-    data = response.json()
+
+def _extract_answer(data: dict) -> str:
     try:
-        answer = data["choices"][0]["message"]["content"]
+        return data["choices"][0]["message"]["content"]
     except (KeyError, IndexError, TypeError):
         raise HTTPException(status_code=502, detail="AI 응답 형식이 올바르지 않습니다.")
+
+
+@router.post("/followup", response_model=FollowupResponse)
+async def followup(
+    body: FollowupRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="챗봇 서버 설정이 완료되지 않았습니다.")
+
+    model = os.getenv("OPENAI_CHAT_MODEL", DEFAULT_MODEL)
+    profile = normalize_profile(body.profile.model_dump() if body.profile else None)
+    messages = _build_messages(body, profile)
+    data = await _call_openai(api_key, model, messages)
+    answer = _extract_answer(data)
+
+    # 조리도구 규칙 검증: 사용 불가 도구·불 조리가 섞이면 한 번 다시 생성하고, 그래도 어기면 안전 안내로 대체한다
+    violations = find_appliance_violations(answer, profile)
+    if violations:
+        logger.warning("조리도구 규칙 위반 감지, 재생성: %s", violations)
+        retry = messages + [
+            {"role": "assistant", "content": answer},
+            {"role": "user", "content": APPLIANCE_RETRY_PROMPT.format(found=", ".join(violations))},
+        ]
+        data = await _call_openai(api_key, model, retry)
+        answer = _extract_answer(data)
+        if find_appliance_violations(answer, profile):
+            answer = APPLIANCE_FALLBACK_ANSWER
 
     return FollowupResponse(
         answer=answer,
