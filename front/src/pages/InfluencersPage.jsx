@@ -48,7 +48,7 @@ function InfluencersPage() {
   useEffect(() => {
     let cancelled = false;
     setRecipes(prev => ({ ...prev, status: 'loading' }));
-    recommendationApi.influencerRecipes(selectedId ?? undefined)
+    recommendationApi.creatorRecipes(selectedId ?? undefined)
       .then(result => { if (!cancelled) setRecipes({ status: 'ready', items: result.items ?? [] }); })
       .catch(() => { if (!cancelled) setRecipes({ status: 'error', items: [] }); });
     return () => { cancelled = true; };

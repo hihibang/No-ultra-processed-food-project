@@ -23,7 +23,7 @@ export const recommendationApi = {
     apiRequest(`/api/recommendations/influencer-recipes/${encodeURIComponent(String(recipeId))}`),
   // ⑥ /influencers 페이지: 크리에이터 목록(찜 여부·팬덤 점수), 찜 토글, 검수 레시피 목록
   influencers: () => apiRequest('/api/recommendations/influencers'),
-  influencerRecipes: (creatorId) => apiRequest(
+  creatorRecipes: (creatorId) => apiRequest(
     creatorId
       ? `/api/recommendations/influencers/recipes?creator_id=${encodeURIComponent(creatorId)}`
       : '/api/recommendations/influencers/recipes',

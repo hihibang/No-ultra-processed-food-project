@@ -34,7 +34,7 @@ const getMainCategory = (subType) => {
 
 function ProductCard({ product, onClick }) {
   const { isInWishlist } = useCart();
-  const { addToCompare, isInCompare } = useCompare();
+  const { addToCompare, removeFromCompare, isInCompare } = useCompare();
   const toggleWishlist = useWishlistToggle();
   const navigate = useNavigate();
   const [isCompareOpen, setIsCompareOpen] = useState(false);
@@ -69,6 +69,11 @@ function ProductCard({ product, onClick }) {
 
   const handleAddToCompare = (e) => {
     e.stopPropagation();
+    // 이미 담긴 상품이면 다시 눌렀을 때 비교함에서 제거(취소)
+    if (isInCompare(id)) {
+      removeFromCompare(id);
+      return;
+    }
     logInteraction({ itemType: 'product', itemId: id, action: 'compare' });
     addToCompare({ ...product, id, name, price });
   };
