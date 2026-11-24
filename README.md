@@ -2,7 +2,7 @@
 
 ## 시연 영상
 
-- [핑퐁 시연 영상 보기 (YouTube)]([https://youtu.be/4EMrAx_Q70w])
+[핑퐁 시연 영상 보기 (YouTube)]([https://youtu.be/4EMrAx_Q70w])
 
 ---
 
