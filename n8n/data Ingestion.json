@@ -1,0 +1,287 @@
+{
+  "name": "data Ingestion",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "30946b9e-4bd6-4b83-a142-c09c25d81b67",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/data/recipe/*.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        64
+      ],
+      "id": "4bca4218-70f7-4bda-89ae-ae8221baca08",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "text": "={{ JSON.stringify($json.data || $json) }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "recipe_id",
+              "type": "number",
+              "description": "레시피 고유 ID (원본 data의 recipe_id)"
+            },
+            {
+              "name": "recipe_title",
+              "description": "요리 제목"
+            },
+            {
+              "name": "recipe_type",
+              "description": "요리 종류 (예: 반찬, 국, 디저트 등)"
+            },
+            {
+              "name": "cooking_method",
+              "description": "조리 방식 (예: 볶기, 끓이기, 찜 등)"
+            },
+            {
+              "name": "main_ingredients",
+              "description": "요리의 중심이 되는 구체적인 식재료 명칭 배열 (예: '버섯' 대신 '새송이버섯', '고기' 대신 '돼지고기')"
+            },
+            {
+              "name": "sub_ingredients",
+              "description": "주재료를 제외한 소스, 양념, 조미료 및 곁들임 재료 배열 (수량/단위 제외)"
+            },
+            {
+              "name": "recipe_summary",
+              "description": "{주재료}를 주재료로 한 {cooking_method} 방식의 {recipe_type} 형태 1문장 요약"
+            },
+            {
+              "name": "steps_list",
+              "description": "상세 조리 순서 및 요리법 단계 목록"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        512,
+        128
+      ],
+      "id": "29616e64-63a9-4d93-b3cd-f74e29824538",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        400
+      ],
+      "id": "c8434134-2ef2-48d4-bf08-32c1721ea7d7",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "w4kvcWd2ZTIZPC5n",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map((item, index) => {\n  const data = item.json.output || item.json;\n\n  const parseList = (val) => {\n    if (Array.isArray(val)) return val.join(', ');\n    if (typeof val === 'string') return val;\n    return '';\n  };\n\n  const mainIng = parseList(data.main_ingredients);\n  const subIng = parseList(data.sub_ingredients);\n  const stepsText = Array.isArray(data.steps_list) \n    ? data.steps_list.join('\\n') \n    : (data.steps || data.steps_list || '');\n\n  const pageContent = `\n요리명: ${data.recipe_title || ''}\n요리 유형: ${data.recipe_type || ''} (${data.cooking_method || ''})\n요약: ${data.recipe_summary || ''}\n주재료: ${mainIng}\n부재료: ${subIng}\n조리 순서:\n${stepsText}\n  `.trim();\n\n  return {\n    json: {\n      id: index, // Qdrant 고유 ID (0 ~ 1151)\n      pageContent: pageContent,\n      metadata: {\n        recipe_id: data.recipe_id,\n        recipe_title: data.recipe_title || '',\n        recipe_type: data.recipe_type || '',\n        cooking_method: data.cooking_method || '',\n        main_ingredients: mainIng,\n        sub_ingredients: subIng,\n        pageContent: pageContent\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        -32
+      ],
+      "id": "c80ca2b4-3fc6-429b-bd5a-1843d4c2bdc7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        -32
+      ],
+      "id": "380752b6-8bbc-4972-a954-10b528783e7e",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "resource": "point",
+        "operation": "upsertPoints",
+        "collectionName": {
+          "__rl": true,
+          "value": "=recipes",
+          "mode": "name"
+        },
+        "points": "=[\n  {\n    \"id\": {{ $node[\"Code in JavaScript\"].json.metadata.recipe_id }},\n    \"vector\": {{ JSON.stringify($json.data[0].embedding || $json.vector) }},\n    \"payload\": {\n      \"pageContent\": {{ JSON.stringify($node[\"Code in JavaScript\"].json.pageContent) }},\n      \"metadata\": {{ JSON.stringify($node[\"Code in JavaScript\"].json.metadata) }}\n    }\n  }\n]",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-qdrant.qdrant",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        304
+      ],
+      "id": "9572ee8b-8682-4f27-b9f4-47029ea109cf",
+      "name": "Upsert Points",
+      "credentials": {
+        "qdrantRestApi": {
+          "id": "kClK4HWPdlVaaBd3",
+          "name": "Qdrant account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"text-embedding-3-small\",\n  \"input\": {{ JSON.stringify($json.pageContent) }}\n}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        976,
+        160
+      ],
+      "id": "3df63759-10c4-4beb-b718-d55b4730ac3b",
+      "name": "HTTP Request",
+      "credentials": {
+        "openAiApi": {
+          "id": "w4kvcWd2ZTIZPC5n",
+          "name": "OpenAI account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Upsert Points",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Points": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "46290c59-c87e-4c66-b9ec-da8e05cb5f20",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1db25c05d126d822a4f25903ceb139b50cbfa1ebee195fb8da623154e09680b2"
+  },
+  "nodeGroups": [],
+  "id": "cVWbw6DVqRcR67y1",
+  "tags": []
+}
